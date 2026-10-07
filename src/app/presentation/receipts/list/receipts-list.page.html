@@ -1,0 +1,175 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>My receipts</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="openFilter()" aria-label="Filter receipts">
+        <ion-icon slot="icon-only" name="funnel-outline" />
+        @if (store.filterActive()) {
+          <span class="filter-dot" aria-label="Filter on"></span>
+        }
+      </ion-button>
+      <ion-button (click)="openMore()" aria-label="More options">
+        <ion-icon slot="icon-only" name="ellipsis-vertical" />
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [class.has-footer]="isIos">
+  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
+    <ion-refresher-content />
+  </ion-refresher>
+
+  @if (webDemo) {
+    <p class="demo-banner" role="note">
+      <strong>Web demo.</strong> Receipts stay in this browser. Camera scanning and automatic
+      reading need the Android or iOS app: here, pick a photo and type the details.
+    </p>
+  }
+  <a class="summary" routerLink="/receipts/summary">
+    <span class="summary-text">
+      <span class="summary-period">
+        {{ monthLabel() }}
+        <ion-icon name="chevron-down-outline" aria-hidden="true" />
+      </span>
+      <span class="summary-total amount">{{
+        store.monthTotals().totalCents | money: currency()
+      }}</span>
+    </span>
+    <span class="summary-count"
+      >{{ store.monthTotals().count | plural: 'receipt' }}
+      @if (store.monthTotals().otherCurrencyCount > 0) {
+        <br />{{ store.monthTotals().otherCurrencyCount }} in other currencies
+      }
+    </span>
+  </a>
+
+  <ion-searchbar
+    class="search"
+    placeholder="Search store, amount, text…"
+    [value]="store.search()"
+    (ionInput)="onSearch($event.detail.value)"
+    [debounce]="0"
+    aria-label="Search receipts"
+  />
+
+  <div class="chips" role="group" aria-label="Quick filters">
+    <button
+      type="button"
+      class="chip"
+      [class.on]="activeQuick() === 'all'"
+      (click)="applyQuick('all')"
+    >
+      @if (activeQuick() === 'all') {
+        <ion-icon name="checkmark-outline" aria-hidden="true" />
+      }
+      All
+    </button>
+    <button
+      type="button"
+      class="chip"
+      [class.on]="activeQuick() === 'this_month'"
+      (click)="applyQuick('this_month')"
+    >
+      This month
+    </button>
+    @for (category of quickCategories(); track category.id) {
+      <button
+        type="button"
+        class="chip"
+        [class.on]="activeQuick() === 'category:' + category.id"
+        (click)="applyCategory(category.id)"
+      >
+        {{ category.name }}
+      </button>
+    }
+  </div>
+
+  @if (store.needsReviewCount() > 0) {
+    <button type="button" class="review-banner" (click)="reviewNow()">
+      <ion-icon name="warning-outline" aria-hidden="true" />
+      <span class="review-text">
+        {{ store.needsReviewCount() }}
+        {{ store.needsReviewCount() === 1 ? 'receipt needs' : 'receipts need' }} review
+      </span>
+      <span class="review-action">Review now</span>
+    </button>
+  }
+
+  @if (isEmpty()) {
+    <div class="empty">
+      @if (hasSearchOrFilter()) {
+        <h2>No matching receipts</h2>
+        <p>Try another search or clear the filter.</p>
+        <ion-button fill="outline" (click)="applyQuick('all')">Show all receipts</ion-button>
+      } @else {
+        <h2>No receipts yet</h2>
+        <p>
+          Scan your first receipt: the store, date and total are read for you, right on your phone.
+        </p>
+        <ion-button (click)="scan()">
+          <ion-icon slot="start" name="camera-outline" />
+          Scan a receipt
+        </ion-button>
+      }
+    </div>
+  }
+
+  <ion-list lines="none" class="receipts">
+    @for (group of groups(); track group.label) {
+      <h2 class="section-label">{{ group.label }}</h2>
+      @for (receipt of group.receipts; track receipt.id) {
+        <ion-item
+          [button]="true"
+          [detail]="false"
+          [routerLink]="['/receipts', receipt.id]"
+          (appLongPress)="startSelection(receipt.id)"
+        >
+          <app-receipt-row
+            [receipt]="receipt"
+            [category]="categories.categoryOf(receipt.categoryId)"
+            [now]="now()"
+          />
+        </ion-item>
+      }
+    }
+  </ion-list>
+
+  @if (store.loading() && store.items().length === 0) {
+    <div class="loading"><ion-spinner name="crescent" /></div>
+  }
+
+  <ion-infinite-scroll [disabled]="!store.hasMore()" (ionInfinite)="loadMore($event)">
+    <ion-infinite-scroll-content />
+  </ion-infinite-scroll>
+
+  @if (!isIos) {
+    <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+      <ion-button class="scan-fab" (click)="scan()">
+        <ion-icon slot="start" name="camera-outline" />
+        Scan
+      </ion-button>
+    </ion-fab>
+  }
+</ion-content>
+
+@if (isIos) {
+  <ion-footer class="ios-actions">
+    <ion-toolbar>
+      <div class="ios-buttons">
+        <ion-button expand="block" class="ios-scan" (click)="scan()">
+          <ion-icon slot="start" name="camera-outline" />
+          Scan a receipt
+        </ion-button>
+        <ion-button
+          class="ios-photos"
+          fill="outline"
+          (click)="scan('photos')"
+          aria-label="Import from Photos"
+        >
+          <ion-icon slot="icon-only" name="image-outline" />
+        </ion-button>
+      </div>
+    </ion-toolbar>
+  </ion-footer>
+}

@@ -1,0 +1,70 @@
+# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
+
+# Compiled output
+/dist
+/tmp
+/out-tsc
+/bazel-out
+
+# Node
+/node_modules
+npm-debug.log
+yarn-error.log
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/mcp.json
+.history/*
+
+# Miscellaneous
+/.angular
+.sass-cache/
+/connect.lock
+/coverage
+/libpeerconnection.log
+testem.log
+/typings
+__screenshots__/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Native build output (each platform also has its own .gitignore)
+/www
+/build
+/android/app/build
+/ios/App/Pods
+/ios/App/build
+DerivedData/
+*.xcarchive
+*.ipa
+*.apk
+*.aab
+
+# Secrets: environment files, signing keys, Apple certificates and profiles
+.env
+.env.*
+!.env.*.example
+*.keystore
+*.jks
+*.p12
+*.p8
+*.mobileprovision
+*.pem
+
+# Logs
+*.log

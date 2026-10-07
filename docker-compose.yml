@@ -1,0 +1,102 @@
+# Team workflow (only Docker is needed on the machine):
+#   docker compose build                         build the toolchain image once
+#   docker compose run --rm install              install npm dependencies (in a volume)
+#   docker compose up dev                        dev server on http://localhost:4200
+#   docker compose run --rm verify               format + lint + typecheck + tests + build
+#   docker compose run --rm android              debug APK      -> dist/android/
+#   docker compose run --rm android-release      signed AAB+APK -> dist/android/ (needs .env.android)
+#   docker compose run --rm android-install      install the APK on a USB phone (Linux hosts)
+#   docker compose run --rm emulator             boot an Android emulator, install + start the APK,
+#                                                save a screenshot and logcat to dist/android/ (Linux + KVM)
+#   docker compose run --rm emulator-gui         same emulator in a window, for manual testing (Linux X11)
+#   ./tester.sh                                  numbered menu doing all of the above
+
+x-toolchain: &toolchain
+  build:
+    context: .
+    target: toolchain
+    args:
+      UID: ${UID:-1000}
+      GID: ${GID:-1000}
+  image: scanreceipt/toolchain:1
+  working_dir: /app
+  volumes:
+    - .:/app
+    # Linux-built dependencies stay in the container, never mixed with the host's node_modules.
+    - node_modules:/app/node_modules
+    - gradle-cache:/home/dev/.gradle
+    - npm-cache:/home/dev/.npm
+
+services:
+  install:
+    <<: *toolchain
+    command: npm ci
+
+  dev:
+    <<: *toolchain
+    command: npx ng serve --host 0.0.0.0 --port 4200
+    ports:
+      - '4200:4200'
+
+  verify:
+    <<: *toolchain
+    command: npm run verify
+
+  android:
+    <<: *toolchain
+    command: ./scripts/android-build.sh debug
+
+  android-release:
+    <<: *toolchain
+    command: ./scripts/android-build.sh release
+    env_file:
+      - path: .env.android
+        required: false
+
+  android-install:
+    <<: *toolchain
+    # USB access to the phone: Linux hosts only (Docker Desktop on macOS/Windows cannot pass USB).
+    privileged: true
+    network_mode: host
+    volumes:
+      - .:/app
+      - /dev/bus/usb:/dev/bus/usb
+    command: sh -c 'adb wait-for-device && adb install -r dist/android/scanreceipt-debug.apk'
+
+  emulator:
+    <<: *toolchain
+    build:
+      context: .
+      target: emulator
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    image: scanreceipt/emulator:1
+    devices:
+      - /dev/kvm:/dev/kvm
+    group_add:
+      - ${KVM_GID:-kvm}
+    command: ./scripts/android-emulator-smoke.sh
+
+  emulator-gui:
+    <<: *toolchain
+    image: scanreceipt/emulator:1
+    devices:
+      - /dev/kvm:/dev/kvm
+    group_add:
+      - ${KVM_GID:-kvm}
+    # Shows the emulator window on the host desktop (Linux X11; run `xhost +local:docker` first).
+    environment:
+      DISPLAY: ${DISPLAY:-:0}
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+      - gradle-cache:/home/dev/.gradle
+      - npm-cache:/home/dev/.npm
+      - /tmp/.X11-unix:/tmp/.X11-unix:ro
+    command: ./scripts/android-emulator-gui.sh
+
+volumes:
+  node_modules:
+  gradle-cache:
+  npm-cache:

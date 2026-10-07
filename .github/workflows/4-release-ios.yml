@@ -1,0 +1,75 @@
+# iOS: signed archive uploaded to TestFlight. Manual only (Actions > 4 · Release · iOS > Run workflow)
+# until the Apple Developer account exists. Set the version first: npm run version:set -- 1.1.0
+#
+# Signing is automatic through an App Store Connect API key (role Admin, so Xcode can create the
+# distribution certificate and profile itself): no .p12 or provisioning profile to manage.
+#   Secrets:   ASC_KEY_ID, ASC_ISSUER_ID, ASC_PRIVATE_KEY (content of the .p8 file)
+#   Variable:  IOS_TEAM_ID (10 characters, developer.apple.com > Membership)
+name: "4 · Release · iOS (TestFlight)"
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: 24
+  NPM_VERSION: 12.0.1
+  NG_CLI_ANALYTICS: false
+  CAPACITOR_TELEMETRY: false
+
+jobs:
+  testflight:
+    name: iOS · archive + TestFlight
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm install -g npm@${{ env.NPM_VERSION }}
+      - run: npm ci
+      - run: npm run verify
+      - run: npx cap sync ios
+      - name: pod install
+        working-directory: ios/App
+        run: pod install
+      - name: App Store Connect API key
+        run: |
+          printf '%s' "${{ secrets.ASC_PRIVATE_KEY }}" > "$RUNNER_TEMP/AuthKey.p8"
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>teamID</key><string>${{ vars.IOS_TEAM_ID }}</string>
+            <key>signingStyle</key><string>automatic</string>
+          </dict>
+          </plist>
+          PLIST
+      - name: Archive
+        run: >
+          xcodebuild archive -workspace ios/App/App.xcworkspace -scheme App -configuration Release
+          -destination 'generic/platform=iOS' -archivePath "$RUNNER_TEMP/App.xcarchive"
+          DEVELOPMENT_TEAM=${{ vars.IOS_TEAM_ID }} CODE_SIGN_STYLE=Automatic
+          -allowProvisioningUpdates
+          -authenticationKeyPath "$RUNNER_TEMP/AuthKey.p8"
+          -authenticationKeyID ${{ secrets.ASC_KEY_ID }}
+          -authenticationKeyIssuerID ${{ secrets.ASC_ISSUER_ID }}
+      # destination=upload: the export sends the build straight to App Store Connect / TestFlight.
+      - name: Export + upload to TestFlight
+        run: >
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/App.xcarchive"
+          -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" -exportPath "$RUNNER_TEMP/export"
+          -allowProvisioningUpdates
+          -authenticationKeyPath "$RUNNER_TEMP/AuthKey.p8"
+          -authenticationKeyID ${{ secrets.ASC_KEY_ID }}
+          -authenticationKeyIssuerID ${{ secrets.ASC_ISSUER_ID }}
+      - name: Remove API key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/AuthKey.p8"

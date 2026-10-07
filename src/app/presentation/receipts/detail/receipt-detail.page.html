@@ -1,0 +1,104 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/receipts" text="" />
+    </ion-buttons>
+    @if (receipt.value(); as r) {
+      <ion-buttons slot="end">
+        <ion-button [routerLink]="['/receipts', r.id, 'edit']" aria-label="Edit receipt">
+          <ion-icon slot="icon-only" name="create-outline" />
+        </ion-button>
+        <ion-button (click)="share(r)" aria-label="Share receipt">
+          <ion-icon slot="icon-only" name="share-outline" />
+        </ion-button>
+        <ion-button (click)="remove(r)" aria-label="Delete receipt" color="danger">
+          <ion-icon slot="icon-only" name="trash-outline" />
+        </ion-button>
+      </ion-buttons>
+    }
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  @if (receipt.value(); as r) {
+    <button
+      type="button"
+      class="photo"
+      (click)="viewImage(r)"
+      aria-label="Open the photo full screen"
+    >
+      <app-receipt-image [path]="r.imagePath" fit="cover" [alt]="'Receipt from ' + r.store" />
+      <span class="zoom-hint"
+        ><ion-icon name="expand-outline" aria-hidden="true" /> Tap to zoom</span
+      >
+    </button>
+
+    <div class="body">
+      @if (r.needsReview) {
+        <div class="review" role="status">
+          <div class="review-text">
+            <strong>Needs review</strong>
+            <span>
+              @if (r.isDoubtful('total')) {
+                The total may be wrong: the OCR wasn't sure about it.
+              } @else {
+                Some details were read with low confidence.
+              }
+            </span>
+          </div>
+          <div class="review-actions">
+            <ion-button
+              size="small"
+              fill="outline"
+              [routerLink]="['/receipts', r.id, 'edit']"
+              [queryParams]="{ review: true }"
+            >
+              Check it
+            </ion-button>
+            <ion-button size="small" (click)="markReviewed(r)">Mark as reviewed</ion-button>
+          </div>
+        </div>
+      }
+
+      <h1 class="store">{{ r.store }}</h1>
+      <p class="when">{{ when() }}</p>
+      <p class="total amount">{{ r.total.cents | money: r.currency }}</p>
+
+      <dl class="facts">
+        <div>
+          <dt>Category</dt>
+          <dd>
+            @if (category(); as c) {
+              <app-category-badge [category]="c" />
+            }
+          </dd>
+        </div>
+        @if (r.tax; as tax) {
+          <div>
+            <dt>Sales tax</dt>
+            <dd class="amount">{{ tax.cents | money: r.currency }}</dd>
+          </div>
+        }
+        <div>
+          <dt>Scanned on</dt>
+          <dd>{{ scannedOn() }}</dd>
+        </div>
+        @if (r.note) {
+          <div class="note">
+            <dt>Note</dt>
+            <dd>{{ r.note }}</dd>
+          </div>
+        }
+      </dl>
+
+      @if (r.ocrText) {
+        <h2 class="ocr-title">OCR text</h2>
+        <pre class="ocr-text">{{ r.ocrText }}</pre>
+      }
+    </div>
+  } @else if (receipt.isLoading()) {
+    <div class="loading"><ion-spinner name="crescent" /></div>
+  } @else {
+    <div class="loading"><p>This receipt no longer exists.</p></div>
+  }
+</ion-content>

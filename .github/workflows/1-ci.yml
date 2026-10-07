@@ -1,0 +1,96 @@
+# CI: every push and pull request is verified (format, lint, types, tests, build),
+# then the Android debug APK proves the native project still compiles.
+# The iOS simulator build runs only from Actions > 1 · CI > Run workflow: macOS minutes cost 10x Linux.
+name: "1 · CI · Quality & Build"
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: 24
+  NPM_VERSION: 12.0.1
+  NG_CLI_ANALYTICS: false
+  CAPACITOR_TELEMETRY: false
+
+jobs:
+  verify:
+    name: Quality gate (format, lint, types, tests, build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm install -g npm@${{ env.NPM_VERSION }}
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test
+      - run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: www
+          path: www/
+          retention-days: 7
+
+  android:
+    name: Android · debug APK
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - run: npm install -g npm@${{ env.NPM_VERSION }}
+      - run: npm ci
+      - run: scripts/android-build.sh debug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: scanreceipt-debug-apk
+          path: dist/android/scanreceipt-debug.apk
+          retention-days: 14
+
+  ios:
+    name: iOS · simulator build
+    needs: verify
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: macos-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm install -g npm@${{ env.NPM_VERSION }}
+      - run: npm ci
+      - run: npx ng build
+      - run: npx cap sync ios
+      - name: pod install
+        working-directory: ios/App
+        run: pod install
+      # Unsigned build: proves the Xcode project compiles, no Apple certificate needed.
+      - run: >
+          xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Debug
+          -sdk iphonesimulator -derivedDataPath build/ios CODE_SIGNING_ALLOWED=NO build

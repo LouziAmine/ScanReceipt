@@ -1,0 +1,139 @@
+.wrap {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: center;
+  padding: 24px 8px;
+}
+
+.paper {
+  position: relative;
+  width: 140px;
+  height: 180px;
+  border-radius: 12px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px 20px;
+  box-sizing: border-box;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.line {
+  height: 5px;
+  border-radius: 3px;
+  background: var(--app-border);
+}
+
+.w70 {
+  width: 70%;
+}
+.w60 {
+  width: 60%;
+}
+.w40 {
+  width: 40%;
+}
+.end {
+  margin-top: auto;
+  align-self: flex-end;
+  background: var(--app-border-strong);
+}
+
+.scan-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--app-scan-mint);
+  box-shadow: 0 0 16px 4px rgba(45, 212, 191, 0.45);
+  animation: scan 1.6s ease-in-out infinite alternate;
+}
+
+@keyframes scan {
+  from {
+    top: 8px;
+  }
+  to {
+    top: calc(100% - 14px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scan-line {
+    animation: none;
+    top: 50%;
+  }
+}
+
+h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.sub {
+  margin: 0;
+  color: var(--app-text-muted);
+  line-height: 1.5;
+}
+
+.steps {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--app-text-muted);
+    font-size: 15px;
+  }
+
+  li.active,
+  li.done {
+    color: var(--app-text);
+  }
+
+  ion-icon,
+  ion-spinner {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+.pending {
+  width: 18px;
+  height: 18px;
+  margin: 2px;
+  border-radius: 50%;
+  border: 2px solid var(--app-border-strong);
+}
+
+.actions {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.privacy {
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--app-text-muted);
+}

@@ -1,0 +1,126 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="close()">Cancel</ion-button>
+    </ion-buttons>
+    <ion-title>Filter receipts</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="reset()">Reset</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <h2 class="group-title">Date</h2>
+  <div class="chips" role="radiogroup" aria-label="Date">
+    @for (choice of dateChoices; track choice.value) {
+      <button
+        type="button"
+        role="radio"
+        class="chip"
+        [class.on]="dateChoice() === choice.value"
+        [attr.aria-checked]="dateChoice() === choice.value"
+        (click)="dateChoice.set(choice.value)"
+      >
+        {{ choice.label }}
+      </button>
+    }
+  </div>
+  @if (dateChoice() === 'custom') {
+    <div class="custom-range">
+      <ion-datetime
+        presentation="date"
+        size="cover"
+        [value]="customFrom()"
+        (ionChange)="customFrom.set(asString($event.detail.value))"
+        aria-label="From"
+      >
+        <span slot="title">From</span>
+      </ion-datetime>
+      <ion-datetime
+        presentation="date"
+        size="cover"
+        [value]="customTo()"
+        (ionChange)="customTo.set(asString($event.detail.value))"
+        aria-label="To"
+      >
+        <span slot="title">To</span>
+      </ion-datetime>
+    </div>
+  }
+
+  <h2 class="group-title">Category</h2>
+  <div class="chips wrap" role="group" aria-label="Category">
+    @for (category of categories.categories(); track category.id) {
+      <button
+        type="button"
+        class="chip"
+        [class.on]="categoryIds().has(category.id)"
+        [attr.aria-pressed]="categoryIds().has(category.id)"
+        (click)="toggleCategory(category.id)"
+      >
+        <span class="dot" [style.background]="colors[category.color].hex"></span>
+        {{ category.name }}
+      </button>
+    }
+  </div>
+
+  <h2 class="group-title">Amount</h2>
+  <div class="amounts">
+    <ion-input
+      label="Min"
+      labelPlacement="stacked"
+      fill="outline"
+      inputmode="decimal"
+      placeholder="0"
+      [ngModel]="minAmount()"
+      (ngModelChange)="minAmount.set($event ?? '')"
+    />
+    <ion-input
+      label="Max"
+      labelPlacement="stacked"
+      fill="outline"
+      inputmode="decimal"
+      placeholder="Any"
+      [ngModel]="maxAmount()"
+      (ngModelChange)="maxAmount.set($event ?? '')"
+    />
+  </div>
+
+  <h2 class="group-title">Sort by</h2>
+  <ion-list lines="none" class="sorts">
+    <ion-radio-group [value]="sort()" (ionChange)="sort.set($event.detail.value)">
+      @for (option of sorts; track option.value) {
+        <ion-item>
+          <ion-radio [value]="option.value" justify="space-between">{{ option.label }}</ion-radio>
+        </ion-item>
+      }
+    </ion-radio-group>
+  </ion-list>
+
+  <ion-list lines="none">
+    <ion-item>
+      <ion-toggle
+        [checked]="onlyNeedsReview()"
+        (ionChange)="onlyNeedsReview.set($event.detail.checked)"
+      >
+        <ion-label>
+          Only "Needs review"
+          <p>Receipts the OCR wasn't sure about</p>
+        </ion-label>
+      </ion-toggle>
+    </ion-item>
+  </ion-list>
+</ion-content>
+
+<ion-footer class="ion-no-border">
+  <ion-toolbar class="ion-padding-horizontal">
+    <ion-button expand="block" (click)="apply()">
+      @if (matchCount() === null) {
+        Show receipts
+      } @else {
+        Show {{ matchCount() }} {{ matchCount() === 1 ? 'receipt' : 'receipts' }}
+      }
+    </ion-button>
+  </ion-toolbar>
+</ion-footer>

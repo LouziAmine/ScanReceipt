@@ -1,0 +1,76 @@
+# Release: pushing a tag like v1.1.0 builds the signed Android AAB + APK and attaches them
+# to a GitHub Release. Set the version first with `npm run version:set -- 1.1.0`, commit, then tag.
+#
+# Repository secrets (Settings > Secrets and variables > Actions):
+#   ANDROID_KEYSTORE_BASE64    base64 -w0 android/release.keystore
+#   ANDROID_KEYSTORE_PASSWORD
+#   ANDROID_KEY_ALIAS          scanreceipt
+#   ANDROID_KEY_PASSWORD
+#   PLAY_SERVICE_ACCOUNT_JSON  optional: when set, the AAB also goes to Google Play (internal track).
+#                              Google requires the very first AAB to be uploaded by hand in Play Console.
+name: "3 · Release · Android (GitHub + Google Play)"
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: 24
+  NPM_VERSION: 12.0.1
+  NG_CLI_ANALYTICS: false
+  CAPACITOR_TELEMETRY: false
+
+jobs:
+  android-release:
+    name: Android · signed AAB + APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - run: npm install -g npm@${{ env.NPM_VERSION }}
+      - run: npm ci
+      - name: Tag matches package.json version
+        run: |
+          expected="v$(node -p "require('./package.json').version")"
+          if [ "$GITHUB_REF_NAME" != "$expected" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match package.json ($expected). Run npm run version:set first."
+            exit 1
+          fi
+      - run: npm run verify
+      - name: Restore keystore
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/release.keystore"
+      - run: scripts/android-build.sh release
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/release.keystore
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/android/scanreceipt-release.aab
+            dist/android/scanreceipt-release.apk
+          generate_release_notes: true
+      - name: Publish to Google Play (internal track)
+        if: env.PLAY_SERVICE_ACCOUNT_JSON != ''
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ env.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: app.scanreceipt.mobile
+          releaseFiles: dist/android/scanreceipt-release.aab
+          track: internal
+          status: completed

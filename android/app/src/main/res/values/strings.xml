@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ScanReceipt</string>
+    <string name="title_activity_main">ScanReceipt</string>
+    <string name="package_name">app.scanreceipt.mobile</string>
+    <string name="custom_url_scheme">app.scanreceipt.mobile</string>
+</resources>

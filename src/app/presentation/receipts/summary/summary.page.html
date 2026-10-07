@@ -1,0 +1,108 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/receipts" text="" />
+    </ion-buttons>
+    <ion-title>Totals</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="pickDate()" aria-label="Pick a date">
+        <ion-icon slot="icon-only" name="calendar-outline" />
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-segment [value]="unit()" (ionChange)="setUnit($event.detail.value)">
+      @for (option of units; track option.value) {
+        <ion-segment-button [value]="option.value">{{ option.label }}</ion-segment-button>
+      }
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="period">
+    <ion-button fill="clear" (click)="shift(-1)" aria-label="Previous period">
+      <ion-icon slot="icon-only" name="chevron-back-outline" />
+    </ion-button>
+    <button type="button" class="period-label" (click)="pickDate()">{{ label() }}</button>
+    <ion-button fill="clear" [disabled]="isCurrent()" (click)="shift(1)" aria-label="Next period">
+      <ion-icon slot="icon-only" name="chevron-forward-outline" />
+    </ion-button>
+  </div>
+
+  @if (summary.value(); as s) {
+    <div class="total-card">
+      <span class="amount total">{{ s.totals.totalCents | money: currency() }}</span>
+      <span class="count"
+        >{{ s.totals.count }} {{ s.totals.count === 1 ? 'receipt' : 'receipts' }}
+        @if (s.totals.otherCurrencyCount > 0) {
+          · {{ s.totals.otherCurrencyCount }} in other currencies, not in this total
+        }
+      </span>
+    </div>
+
+    @if (weekDays().length > 0) {
+      <div class="week" role="list" aria-label="Days of the week">
+        @for (day of weekDays(); track day.number) {
+          <button
+            type="button"
+            class="day"
+            role="listitem"
+            [disabled]="day.future"
+            (click)="openDay(day.date)"
+          >
+            <span class="wd">{{ day.name }}</span>
+            <span class="num">{{ day.number }}</span>
+            <span class="day-amount">{{
+              day.cents > 0 ? (day.cents | money: currency()) : '–'
+            }}</span>
+          </button>
+        }
+      </div>
+    }
+
+    @if (unit() !== 'day' && s.byCategory.length > 0) {
+      <h2 class="section-label">By category</h2>
+      <ul class="bars">
+        @for (row of s.byCategory; track row.categoryId) {
+          @let category = categories.categoryOf(row.categoryId);
+          <li>
+            <div class="bar-head">
+              <span>{{ category?.name ?? 'Other' }} · {{ row.count }}</span>
+              <span class="amount">{{ row.totalCents | money: currency() }}</span>
+            </div>
+            <div class="track" aria-hidden="true">
+              <div
+                class="fill"
+                [style.width.%]="(row.totalCents / maxCategoryCents()) * 100"
+                [style.background]="colors[category?.color ?? 'gray'].hex"
+              ></div>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+
+    <h2 class="section-label">Receipts</h2>
+    @if (s.receipts.length === 0) {
+      <div class="empty">
+        <strong>No receipts {{ unit() === 'day' ? 'this day' : 'in this period' }}</strong>
+        <p>Nothing was scanned on these dates.</p>
+      </div>
+    } @else {
+      <ion-list lines="none">
+        @for (receipt of s.receipts; track receipt.id) {
+          <ion-item [button]="true" [detail]="false" [routerLink]="['/receipts', receipt.id]">
+            <app-receipt-row
+              [receipt]="receipt"
+              [category]="categories.categoryOf(receipt.categoryId)"
+              [now]="now"
+            />
+          </ion-item>
+        }
+      </ion-list>
+    }
+  } @else {
+    <div class="empty"><ion-spinner name="crescent" /></div>
+  }
+</ion-content>

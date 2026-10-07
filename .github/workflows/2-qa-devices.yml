@@ -1,0 +1,122 @@
+# Installs and launches the app on Android emulators (minimum, middle and latest API) and an
+# iPhone simulator, then keeps a screenshot + logs as artifacts. Manual only (Actions > Run workflow).
+# The ML Kit camera scanner does not run in emulators: this checks install, startup and the first screen.
+name: "2 · QA · Emulators & Simulators"
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: 24
+  NPM_VERSION: 12.0.1
+  APP_ID: app.scanreceipt.mobile
+  NG_CLI_ANALYTICS: false
+  CAPACITOR_TELEMETRY: false
+
+jobs:
+  apk:
+    name: Android · build debug APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - run: npm install -g npm@${{ env.NPM_VERSION }}
+      - run: npm ci
+      - run: scripts/android-build.sh debug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: debug-apk
+          path: dist/android/scanreceipt-debug.apk
+          retention-days: 7
+
+  android-emulator:
+    name: Android · API ${{ matrix.api-level }}
+    needs: apk
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        # 24 = Android 7 (Capacitor 8 minimum), 30 = Android 11, 36 = Android 16 (Play target)
+        api-level: [24, 30, 36]
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: debug-apk
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          arch: x86_64
+          target: ${{ matrix.api-level >= 30 && 'google_apis' || 'default' }}
+          disable-animations: true
+          script: |
+            adb install -r scanreceipt-debug.apk
+            adb shell monkey -p ${{ env.APP_ID }} -c android.intent.category.LAUNCHER 1
+            sleep 20
+            adb exec-out screencap -p > android-screenshot.png
+            adb logcat -d > android-logcat.txt
+            adb shell pidof ${{ env.APP_ID }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-run-api${{ matrix.api-level }}
+          retention-days: 7
+          path: |
+            android-screenshot.png
+            android-logcat.txt
+
+  ios-simulator:
+    name: iOS · iPhone simulator
+    runs-on: macos-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm install -g npm@${{ env.NPM_VERSION }}
+      - run: npm ci
+      - run: npx ng build
+      - run: npx cap sync ios
+      - name: pod install
+        working-directory: ios/App
+        run: pod install
+      - run: >
+          xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Debug
+          -sdk iphonesimulator -destination 'generic/platform=iOS Simulator'
+          -derivedDataPath "$RUNNER_TEMP/dd" CODE_SIGNING_ALLOWED=NO build
+      - name: Launch in the iPhone simulator
+        run: |
+          udid=$(xcrun simctl list devices available -j \
+            | jq -r '[.devices[][] | select(.name | startswith("iPhone"))][0].udid')
+          echo "Simulator: $udid"
+          xcrun simctl boot "$udid"
+          xcrun simctl bootstatus "$udid" -b
+          xcrun simctl install "$udid" "$RUNNER_TEMP/dd/Build/Products/Debug-iphonesimulator/App.app"
+          xcrun simctl launch "$udid" "$APP_ID"
+          sleep 20
+          xcrun simctl io "$udid" screenshot ios-screenshot.png
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ios-run
+          retention-days: 7
+          path: ios-screenshot.png

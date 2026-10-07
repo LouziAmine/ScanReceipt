@@ -1,0 +1,141 @@
+// ScanReceipt brand tokens (see the "Final logo C + brand colors" board).
+// Every color pair below meets WCAG AA (4.5:1) for text.
+
+:root {
+  --app-font: 'DM Sans Variable', 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --app-ink-navy: #0b2b3a;
+  --app-scan-mint: #2dd4bf;
+  --app-bg: #f6f7f5;
+  --app-surface: #ffffff;
+  --app-surface-muted: #e9ece8;
+  --app-text: #16181a;
+  --app-text-muted: #5a6067;
+  --app-border: #dadfda;
+  --app-border-strong: #c4c9c4;
+  --app-chip-on-bg: #cce8e3;
+  --app-chip-on-fg: #134e4a;
+  --app-selected-row: #e6f4f1;
+  --app-review-bg: #fef3c7;
+  --app-review-fg: #78350f;
+  --app-review-border: #b45309;
+  --app-review-field-bg: #fffbeb;
+  --app-summary-bg: #0f766e;
+  --app-summary-fg: #ffffff;
+  --app-radius-sm: 10px;
+  --app-radius-md: 14px;
+  --app-radius-lg: 20px;
+
+  --ion-font-family: var(--app-font);
+  --ion-background-color: var(--app-bg);
+  --ion-background-color-rgb: 246, 247, 245;
+  --ion-text-color: var(--app-text);
+  --ion-text-color-rgb: 22, 24, 26;
+  --ion-toolbar-background: var(--app-bg);
+  --ion-item-background: transparent;
+  --ion-card-background: var(--app-surface);
+  --ion-border-color: var(--app-border);
+
+  --ion-color-primary: #0f766e;
+  --ion-color-primary-rgb: 15, 118, 110;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #0d6861;
+  --ion-color-primary-tint: #27847d;
+
+  --ion-color-secondary: #0b2b3a;
+  --ion-color-secondary-rgb: 11, 43, 58;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-contrast-rgb: 255, 255, 255;
+  --ion-color-secondary-shade: #0a2633;
+  --ion-color-secondary-tint: #23404e;
+
+  --ion-color-tertiary: #2dd4bf;
+  --ion-color-tertiary-rgb: 45, 212, 191;
+  --ion-color-tertiary-contrast: #0b2b3a;
+  --ion-color-tertiary-contrast-rgb: 11, 43, 58;
+  --ion-color-tertiary-shade: #28baa8;
+  --ion-color-tertiary-tint: #42d8c5;
+
+  // "Success" (valid field highlight, checks) uses the brand's action teal.
+  --ion-color-success: #0f766e;
+  --ion-color-success-rgb: 15, 118, 110;
+  --ion-color-success-contrast: #ffffff;
+  --ion-color-success-contrast-rgb: 255, 255, 255;
+  --ion-color-success-shade: #0d6861;
+  --ion-color-success-tint: #27847d;
+
+  --ion-color-warning: #b45309;
+  --ion-color-warning-rgb: 180, 83, 9;
+  --ion-color-warning-contrast: #ffffff;
+  --ion-color-warning-contrast-rgb: 255, 255, 255;
+  --ion-color-warning-shade: #9e4908;
+  --ion-color-warning-tint: #bc6422;
+
+  --ion-color-danger: #b42318;
+  --ion-color-danger-rgb: 180, 35, 24;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: #9e1f15;
+  --ion-color-danger-tint: #bc392f;
+
+  --ion-color-medium: #5a6067;
+  --ion-color-medium-rgb: 90, 96, 103;
+  --ion-color-medium-contrast: #ffffff;
+  --ion-color-medium-contrast-rgb: 255, 255, 255;
+  --ion-color-medium-shade: #4f545b;
+  --ion-color-medium-tint: #6b7076;
+}
+
+// Dark theme follows the system setting. Mint becomes the action color: the brand
+// allows mint only on dark surfaces.
+@media (prefers-color-scheme: dark) {
+  :root {
+    --app-bg: #0f1416;
+    --app-surface: #182022;
+    --app-surface-muted: #222b2e;
+    --app-text: #eef1ef;
+    --app-text-muted: #a3abb2;
+    --app-border: #2c3639;
+    --app-border-strong: #45514f;
+    --app-chip-on-bg: #134e4a;
+    --app-chip-on-fg: #ccf5ee;
+    --app-selected-row: #12302d;
+    --app-review-bg: #3b2a0c;
+    --app-review-fg: #fde68a;
+    --app-review-border: #f59e0b;
+    --app-review-field-bg: #2a200c;
+    --app-summary-bg: #11394b;
+    --app-summary-fg: #ffffff;
+
+    --ion-background-color: var(--app-bg);
+    --ion-background-color-rgb: 15, 20, 22;
+    --ion-text-color: var(--app-text);
+    --ion-text-color-rgb: 238, 241, 239;
+    --ion-toolbar-background: var(--app-bg);
+    --ion-card-background: var(--app-surface);
+    --ion-border-color: var(--app-border);
+
+    --ion-color-primary: #2dd4bf;
+    --ion-color-primary-rgb: 45, 212, 191;
+    --ion-color-primary-contrast: #0b2b3a;
+    --ion-color-primary-contrast-rgb: 11, 43, 58;
+    --ion-color-primary-shade: #28baa8;
+    --ion-color-primary-tint: #42d8c5;
+
+    --ion-color-success: #2dd4bf;
+    --ion-color-success-rgb: 45, 212, 191;
+    --ion-color-success-contrast: #0b2b3a;
+    --ion-color-success-contrast-rgb: 11, 43, 58;
+
+    --ion-color-medium: #a3abb2;
+    --ion-color-medium-rgb: 163, 171, 178;
+    --ion-color-medium-contrast: #0f1416;
+    --ion-color-medium-contrast-rgb: 15, 20, 22;
+
+    --ion-color-danger: #f97066;
+    --ion-color-danger-rgb: 249, 112, 102;
+    --ion-color-danger-contrast: #0f1416;
+    --ion-color-danger-contrast-rgb: 15, 20, 22;
+  }
+}

@@ -1,0 +1,76 @@
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--app-text-muted);
+}
+
+.doubtful ion-input,
+.doubtful ion-datetime-button {
+  --border-color: var(--app-review-border);
+  --border-width: 2px;
+  --background: var(--app-review-field-bg);
+}
+
+.doubt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--app-review-fg);
+}
+
+.total-doubt {
+  padding: 10px 12px;
+  border-radius: var(--app-radius-md);
+  background: var(--app-review-bg);
+  flex-wrap: wrap;
+
+  span {
+    flex: 1;
+  }
+}
+
+.amounts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.total-input {
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.currency {
+  margin-right: 4px;
+  color: var(--app-text-muted);
+}
+
+.category {
+  min-height: 48px;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--app-text);
+}
+
+.rule {
+  font-size: 14px;
+  min-height: 44px;
+}
