@@ -1,0 +1,65 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="close()" [attr.aria-label]="'Close selection' | t">
+        <ion-icon slot="icon-only" name="close-outline" />
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{ count() | plural: '{count} selected' : '{count} selected' }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="toggleAll()">{{
+        (allSelected() ? 'Select none' : 'Select all') | t
+      }}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <p class="hint">
+    {{ 'Tap receipts to select them. Long-press any receipt in the list to start here.' | t }}
+  </p>
+  <ion-list lines="none">
+    @for (receipt of store.items(); track receipt.id) {
+      <ion-item [class.selected]="selected().has(receipt.id)">
+        <ion-checkbox
+          slot="start"
+          [checked]="selected().has(receipt.id)"
+          (ionChange)="toggle(receipt.id)"
+          [attr.aria-label]="'Select {store}' | t: { store: receipt.store }"
+        />
+        <app-receipt-row
+          [receipt]="receipt"
+          [category]="categories.categoryOf(receipt.categoryId)"
+          [now]="now"
+        />
+      </ion-item>
+    }
+  </ion-list>
+  <ion-infinite-scroll [disabled]="!store.hasMore()" (ionInfinite)="loadMore($event)">
+    <ion-infinite-scroll-content />
+  </ion-infinite-scroll>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <div class="actions">
+      <ion-button fill="clear" [disabled]="count() === 0" (click)="exportSelection()">
+        <ion-icon slot="start" name="cloud-upload-outline" />
+        {{ 'Export' | t }}
+      </ion-button>
+      <ion-button fill="clear" [disabled]="count() === 0" (click)="shareSelection()">
+        <ion-icon slot="start" name="share-outline" />
+        {{ 'Share' | t }}
+      </ion-button>
+      <ion-button
+        fill="clear"
+        color="danger"
+        [disabled]="count() === 0"
+        (click)="deleteSelection()"
+      >
+        <ion-icon slot="start" name="trash-outline" />
+        {{ 'Delete' | t }}
+      </ion-button>
+    </div>
+  </ion-toolbar>
+</ion-footer>

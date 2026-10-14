@@ -1,0 +1,1 @@
+reçu,ticket,scanner,dépenses,note de frais,OCR,budget,impôts,facture,CSV,PDF,comptabilité

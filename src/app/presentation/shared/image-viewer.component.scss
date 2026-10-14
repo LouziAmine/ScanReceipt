@@ -1,0 +1,20 @@
+ion-content {
+  --background: #000;
+}
+.frame {
+  display: block;
+  width: 100%;
+  min-height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+img.zoomed {
+  width: 220%;
+  max-width: none;
+}

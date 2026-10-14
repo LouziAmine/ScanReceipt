@@ -1,0 +1,1 @@
+recibo,nota fiscal,cupom,scanner,despesas,reembolso,orçamento,imposto,OCR,CSV,PDF,gastos

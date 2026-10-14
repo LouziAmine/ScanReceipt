@@ -1,0 +1,69 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/receipts" text="" />
+    </ion-buttons>
+    <ion-title>{{ 'Backup & restore' | t }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+  <section class="card">
+    <strong>{{ lastBackupLabel() }}</strong>
+    @if (status.value(); as s) {
+      <span class="muted"
+        >{{ s.receiptCount | plural: '{count} receipt' : '{count} receipts' }} ·
+        {{ s.usedBytes | fileSize }}</span
+      >
+      @if (s.newSinceBackup > 0 && settings.settings().lastBackupAt) {
+        <span class="review-badge">{{
+          s.newSinceBackup
+            | plural
+              : '{count} new receipt since your last backup'
+              : '{count} new receipts since your last backup'
+        }}</span>
+      }
+    }
+    <ion-button expand="block" (click)="backup()">
+      <ion-icon slot="start" name="cloud-upload-outline" />
+      {{ 'Back up now' | t }}
+    </ion-button>
+    <p class="muted small">
+      {{
+        'Creates one file with your receipts, photos and categories. You choose where to save it: Files, iCloud Drive, Google Drive or email.'
+          | t
+      }}
+    </p>
+  </section>
+
+  <section class="card">
+    <ion-button expand="block" fill="outline" (click)="restore()">
+      <ion-icon slot="start" name="cloud-download-outline" />
+      {{ 'Restore from a backup file' | t }}
+    </ion-button>
+    <p class="muted small">
+      {{ 'Use this on a new phone. Restoring replaces the receipts currently on this phone.' | t }}
+    </p>
+  </section>
+
+  <ion-list lines="none">
+    <ion-item>
+      <ion-toggle
+        [checked]="settings.settings().backupReminder"
+        (ionChange)="setReminder($event.detail.checked)"
+      >
+        <ion-label>
+          {{ 'Remind me every month' | t }}
+          <p>{{ "A notification when it's time to back up" | t }}</p>
+        </ion-label>
+      </ion-toggle>
+    </ion-item>
+  </ion-list>
+
+  <p class="warning">
+    <ion-icon name="alert-circle-outline" aria-hidden="true" />
+    {{
+      'Your receipts live only on this phone. Without a backup, losing the phone means losing them.'
+        | t
+    }}
+  </p>
+</ion-content>

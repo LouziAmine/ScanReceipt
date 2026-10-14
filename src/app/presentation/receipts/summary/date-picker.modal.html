@@ -1,0 +1,39 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="close()">{{ 'Cancel' | t }}</ion-button>
+    </ion-buttons>
+    <ion-title>{{ 'Pick a date' | t }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+  <div class="shortcuts">
+    <ion-button size="small" fill="outline" (click)="select(today)">{{ 'Today' | t }}</ion-button>
+    <ion-button size="small" fill="outline" (click)="select(yesterday)">{{
+      'Yesterday' | t
+    }}</ion-button>
+  </div>
+  <ion-datetime
+    presentation="date"
+    [locale]="locale()"
+    size="cover"
+    [max]="maxIso"
+    [value]="selectedIso()"
+    [highlightedDates]="highlight"
+    (ionChange)="onChange($event.detail.value)"
+  />
+  <div class="info" aria-live="polite">
+    <strong>{{ selectedLabel() }}</strong>
+    @if (selectedTotal(); as day) {
+      <span>{{ day.count | plural: '{count} receipt' : '{count} receipts' }}</span>
+      <span class="amount">{{ day.totalCents | money: currency() }}</span>
+    } @else {
+      <span class="muted">{{ 'No receipts on this day' | t }}</span>
+    }
+  </div>
+</ion-content>
+<ion-footer class="ion-no-border">
+  <ion-toolbar class="ion-padding-horizontal">
+    <ion-button expand="block" (click)="confirm()">{{ 'Show this day' | t }}</ion-button>
+  </ion-toolbar>
+</ion-footer>

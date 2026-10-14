@@ -1,0 +1,26 @@
+Escanea un ticket en segundos, sin cuenta y sin internet. Tus datos se quedan en tu móvil.
+
+ScanReceipt lee tus tickets en papel por ti: apunta con la cámara y la tienda, la fecha, el total y el IVA se rellenan solos. Los campos dudosos se resaltan, así solo revisas lo necesario.
+
+RÁPIDO
+• Escáner con detección de bordes y corrección de perspectiva
+• Reconocimiento de texto en el móvil: funciona en modo avión
+• Categoría sugerida según el nombre de la tienda
+
+ÚTIL PARA IMPUESTOS Y NOTAS DE GASTOS
+• Totales por día, semana, mes y año, y por categoría
+• Exporta a CSV (Excel), PDF con fotos o un ZIP de las fotos
+• Comparte un ticket como foto o como texto
+
+PRIVADO
+• Sin cuenta, sin servidor, sin anuncios, sin rastreo
+• Nada sale de tu móvil salvo que lo compartas
+• Código abierto (Apache 2.0)
+
+SIN PÉRDIDA DE DATOS
+• Copia de seguridad completa en un solo archivo, con recordatorio mensual
+• Restaura todo en un móvil nuevo
+
+CUALQUIER MONEDA, 7 IDIOMAS
+• Lee la moneda del ticket y la convierte al tipo de cambio del día de la compra
+• Inglés, francés, árabe, chino, español, alemán y portugués

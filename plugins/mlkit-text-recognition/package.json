@@ -1,0 +1,53 @@
+{
+  "name": "@capacitor-mlkit/text-recognition",
+  "version": "8.2.1",
+  "description": "ML Kit Text Recognition for Capacitor, Latin script only (trimmed copy of @capacitor-mlkit/text-recognition for ScanReceipt).",
+  "main": "dist/plugin.cjs.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
+  "unpkg": "dist/plugin.js",
+  "files": [
+    "android/src/main/",
+    "android/build.gradle",
+    "dist/",
+    "ios/Plugin/",
+    "CapacitorMlkitTextRecognition.podspec"
+  ],
+  "author": "Robin Genz <mail@robingenz.dev>",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/capawesome-team/capacitor-mlkit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/capawesome-team/capacitor-mlkit/issues"
+  },
+  "keywords": [
+    "capacitor",
+    "plugin",
+    "native",
+    "capacitor-plugin",
+    "text recognition",
+    "text recognizer",
+    "ocr",
+    "mlkit"
+  ],
+  "peerDependencies": {
+    "@capacitor/core": ">=8.0.0"
+  },
+  "eslintConfig": {
+    "extends": "@ionic/eslint-config/recommended"
+  },
+  "capacitor": {
+    "ios": {
+      "src": "ios"
+    },
+    "android": {
+      "src": "android"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "homepage": "https://capawesome.io/docs/sdks/capacitor/mlkit/text-recognition/"
+}

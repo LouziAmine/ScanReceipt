@@ -1,0 +1,22 @@
+<span class="thumb" aria-hidden="true">
+  <span class="line w80 strong"></span>
+  <span class="line"></span>
+  <span class="line w60"></span>
+  <span class="line w50 strong total"></span>
+</span>
+<span class="text">
+  <span class="store" dir="auto">{{ receipt().store }}</span>
+  <span class="meta">
+    <span class="dot" [style.background]="dotColor()"></span>
+    {{ category()?.name ?? 'Other' | t }} · {{ when() }}
+    @if (receipt().needsReview) {
+      <span class="review-badge">{{ 'Needs review' | t }}</span>
+    }
+  </span>
+</span>
+<span class="amounts">
+  <span class="amount">{{ receipt().total.cents | money: receipt().currency }}</span>
+  @if (receipt().original; as paid) {
+    <span class="original">{{ paid.total.cents | money: paid.total.currency }}</span>
+  }
+</span>

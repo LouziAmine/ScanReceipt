@@ -1,0 +1,55 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="close()">{{ 'Cancel' | t }}</ion-button>
+    </ion-buttons>
+    <ion-title>{{ 'Choose currency' | t }}</ion-title>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-searchbar
+      [placeholder]="'Search by name or code' | t"
+      [value]="query()"
+      (ionInput)="query.set($event.detail.value ?? '')"
+    />
+  </ion-toolbar>
+</ion-header>
+<ion-content>
+  @if (suggested().length > 0) {
+    <ion-list lines="full">
+      <ion-list-header>{{ 'Suggested' | t }}</ion-list-header>
+      @for (option of suggested(); track option.code) {
+        <ng-container *ngTemplateOutlet="row; context: { $implicit: option }" />
+      }
+    </ion-list>
+  }
+  <ion-list lines="full">
+    @if (suggested().length > 0) {
+      <ion-list-header>{{ 'All currencies' | t }}</ion-list-header>
+    }
+    @for (option of others(); track option.code) {
+      <ng-container *ngTemplateOutlet="row; context: { $implicit: option }" />
+    } @empty {
+      <p class="ion-padding empty">
+        {{ 'No currency matches "{query}".' | t: { query: query().trim() } }}
+      </p>
+    }
+  </ion-list>
+
+  <ng-template #row let-option>
+    <ion-item [button]="true" [detail]="false" (click)="select(option.code)">
+      <span slot="start" class="symbol">{{ option.symbol }}</span>
+      <ion-label>
+        {{ option.name }}
+        <p>{{ option.code }}</p>
+      </ion-label>
+      @if (option.code === selected()) {
+        <ion-icon
+          slot="end"
+          name="checkmark-outline"
+          color="primary"
+          [attr.aria-label]="'Selected' | t"
+        />
+      }
+    </ion-item>
+  </ng-template>
+</ion-content>

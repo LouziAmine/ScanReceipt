@@ -1,0 +1,110 @@
+# Live test in the browser: builds the Android APK and the iPhone simulator app, uploads them to
+# Appetize (https://appetize.io) and prints one link per device in the run summary. Anyone with a
+# link can use the app in real time, no install. Manual only (Actions > Run workflow), or
+# `scripts/qa-cloud.sh live` / `./tester.sh 20`. Action "stop" (`scripts/qa-cloud.sh live-stop`,
+# `./tester.sh 22`) deletes the builds on Appetize so the links stop working.
+#
+# Free plan: 30 minutes of streaming a month. Minutes count only while a link is open; a session
+# ends when its tab is closed or after 2 minutes without a tap (Appetize default), so nothing runs
+# in between. Building and uploading here costs no Appetize minutes.
+#
+# One-time setup: Appetize account > Organization > API Tokens (role Developer), then
+# GitHub > Settings > Secrets and variables > Actions > New repository secret: APPETIZE_API_KEY.
+name: "6 · Live test · Appetize (browser)"
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: start = build + upload + links · stop = delete the builds (links stop working)
+        type: choice
+        options: [start, stop]
+        default: start
+      platform:
+        description: Which app to send to Appetize (Android only by default for now)
+        type: choice
+        options: [android, ios, both]
+        default: android
+
+permissions:
+  contents: read
+
+concurrency:
+  group: appetize
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: 24
+  NPM_VERSION: 12.0.1
+  NG_CLI_ANALYTICS: false
+  CAPACITOR_TELEMETRY: false
+
+jobs:
+  android:
+    name: Android · upload to Appetize
+    if: inputs.action == 'start' && inputs.platform != 'ios'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - run: npm install -g npm@${{ env.NPM_VERSION }}
+      - run: npm ci
+      - run: scripts/android-build.sh debug
+      - name: Upload to Appetize
+        env:
+          APPETIZE_API_KEY: ${{ secrets.APPETIZE_API_KEY }}
+        run: scripts/appetize-upload.sh android dist/android/scanreceipt-debug.apk "pixel7 pixel9pro"
+
+  ios:
+    name: iOS · upload to Appetize
+    if: inputs.action == 'start' && inputs.platform != 'android'
+    runs-on: macos-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm install -g npm@${{ env.NPM_VERSION }}
+      - run: npm ci
+      - run: npx ng build
+      - run: npx cap sync ios
+      - name: pod install
+        working-directory: ios/App
+        run: pod install
+      # Appetize runs iOS simulator builds (.app), zipped. Same build as the QA workflow: forcing
+      # ARCHS=arm64 fails (exit 65) because the ML Kit pods ship no arm64 simulator slice.
+      - run: >
+          xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Debug
+          -sdk iphonesimulator -destination 'generic/platform=iOS Simulator'
+          -derivedDataPath "$RUNNER_TEMP/dd" CODE_SIGNING_ALLOWED=NO build
+      - name: Zip the simulator app
+        run: |
+          cd "$RUNNER_TEMP/dd/Build/Products/Debug-iphonesimulator"
+          zip -qry "$GITHUB_WORKSPACE/ScanReceipt-simulator.zip" App.app
+      - name: Upload to Appetize
+        env:
+          APPETIZE_API_KEY: ${{ secrets.APPETIZE_API_KEY }}
+        run: scripts/appetize-upload.sh ios ScanReceipt-simulator.zip "iphone15pro iphone16promax"
+
+  stop:
+    name: Stop · delete the builds on Appetize
+    if: inputs.action == 'stop'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Delete every build
+        env:
+          APPETIZE_API_KEY: ${{ secrets.APPETIZE_API_KEY }}
+        run: scripts/appetize-stop.sh

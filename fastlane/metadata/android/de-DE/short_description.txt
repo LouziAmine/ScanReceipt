@@ -1,0 +1,1 @@
+Belege offline scannen: Geschäft, Datum und Summe werden erkannt. Ohne Konto.

@@ -1,0 +1,26 @@
+Scannez un reçu en quelques secondes, sans compte et sans internet. Vos données restent sur votre téléphone.
+
+ScanReceipt lit vos tickets de caisse pour vous : visez avec l'appareil photo, et le magasin, la date, le total et la TVA sont remplis. Les champs douteux sont mis en évidence : vous ne vérifiez que ce qui doit l'être.
+
+RAPIDE
+• Scanner avec détection des bords et correction de perspective
+• Reconnaissance du texte sur le téléphone : fonctionne en mode avion
+• Catégorie suggérée d'après le nom du magasin
+
+UTILE POUR LES IMPÔTS ET LES NOTES DE FRAIS
+• Totaux par jour, semaine, mois et année, et par catégorie
+• Export CSV (Excel), PDF avec photos, ou ZIP des photos
+• Partage d'un reçu en photo ou en texte
+
+PRIVÉ
+• Sans compte, sans serveur, sans pub, sans pistage
+• Rien ne quitte votre téléphone, sauf si vous le partagez
+• Open source (Apache 2.0)
+
+AUCUNE PERTE DE DONNÉES
+• Sauvegarde complète dans un seul fichier, avec un rappel mensuel
+• Restauration de tout sur un nouveau téléphone
+
+TOUTES LES DEVISES, 7 LANGUES
+• Lit la devise du reçu et la convertit au taux du jour de l'achat
+• Anglais, français, arabe, chinois, espagnol, allemand et portugais

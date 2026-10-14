@@ -1,0 +1,3 @@
+# Same id on both stores (capacitor.config.ts). Forks: change it here too.
+app_identifier('app.scanreceipt.mobile')
+package_name('app.scanreceipt.mobile')

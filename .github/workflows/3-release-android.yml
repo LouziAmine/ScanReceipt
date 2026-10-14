@@ -1,0 +1,105 @@
+# Release: builds the signed Android AAB + APK, attaches them to a GitHub Release and, with fastlane,
+# publishes them on Google Play with the store texts (7 languages), icon, screenshots and release notes.
+# Set the version (`npm run version:set -- 1.1.0`), commit, push a tag v1.1.0, then
+# Actions > 3 · Release · Android > Run workflow, choosing the tag in "Use workflow from".
+# Pushing the tag alone starts nothing, unless the variable RELEASE_ON_TAG is "true".
+#
+# Repository secrets (Settings > Secrets and variables > Actions):
+#   ANDROID_KEYSTORE_BASE64    base64 -w0 android/release.keystore
+#   ANDROID_KEYSTORE_PASSWORD
+#   ANDROID_KEY_ALIAS          scanreceipt
+#   ANDROID_KEY_PASSWORD
+#   PLAY_SERVICE_ACCOUNT_JSON  optional: when set, the AAB also goes to Google Play (fastlane).
+#                              Google requires the very first AAB to be uploaded by hand in Play Console.
+# Repository variables:
+#   RELEASE_ON_TAG   "true": pushing a v*.*.* tag starts this workflow (one push publishes)
+#   PLAY_TRACK       internal (default), alpha, beta or production
+#   PLAY_ROLLOUT     optional, e.g. 0.2: the update reaches 20% of users first
+name: "3 · Release · Android (GitHub + Google Play)"
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+    inputs:
+      play_track:
+        description: Google Play track (empty = variable PLAY_TRACK, else internal)
+        type: choice
+        options: ['', internal, alpha, beta, production]
+        default: ''
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: 24
+  NPM_VERSION: 12.0.1
+  NG_CLI_ANALYTICS: false
+  CAPACITOR_TELEMETRY: false
+
+jobs:
+  android-release:
+    name: Android · signed AAB + APK
+    if: github.event_name == 'workflow_dispatch' || vars.RELEASE_ON_TAG == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - run: npm install -g npm@${{ env.NPM_VERSION }}
+      - run: npm ci
+      - name: Tag matches package.json version
+        run: |
+          if [ "$GITHUB_REF_TYPE" != tag ]; then
+            echo "::error::Run this workflow from a version tag: in \"Use workflow from\", pick Tags > v… (not a branch)."
+            exit 1
+          fi
+          expected="v$(node -p "require('./package.json').version")"
+          if [ "$GITHUB_REF_NAME" != "$expected" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match package.json ($expected). Run npm run version:set first."
+            exit 1
+          fi
+      - run: npm run verify
+      - name: Restore keystore
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/release.keystore"
+      - run: scripts/android-build.sh release
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/release.keystore
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/android/scanreceipt-release.aab
+            dist/android/scanreceipt-release.apk
+          generate_release_notes: true
+      # Store listing: screenshots in 7 languages from the web build, release notes from CHANGELOG.md.
+      - name: Store screenshots and release notes
+        if: env.PLAY_SERVICE_ACCOUNT_JSON != ''
+        run: |
+          npx playwright-core install --with-deps chromium-headless-shell
+          npx ng build --configuration development
+          npm run store:screenshots
+          npm run store:notes
+      - uses: ruby/setup-ruby@v1
+        if: env.PLAY_SERVICE_ACCOUNT_JSON != ''
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+      - name: Publish to Google Play (fastlane)
+        if: env.PLAY_SERVICE_ACCOUNT_JSON != ''
+        run: bundle exec fastlane android release aab:dist/android/scanreceipt-release.aab
+        env:
+          PLAY_TRACK: ${{ inputs.play_track || vars.PLAY_TRACK || 'internal' }}
+          PLAY_ROLLOUT: ${{ vars.PLAY_ROLLOUT }}

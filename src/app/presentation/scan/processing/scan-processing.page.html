@@ -1,0 +1,59 @@
+<ion-content class="ion-padding">
+  <div class="wrap">
+    <div class="paper" aria-hidden="true">
+      <span class="line w70"></span>
+      <span class="line"></span>
+      <span class="line w60"></span>
+      <span class="line"></span>
+      <span class="line w40 end"></span>
+      @if (!failed()) {
+        <span class="scan-line"></span>
+      }
+    </div>
+
+    @if (failed()) {
+      <h1>{{ "We couldn't read this receipt" | t }}</h1>
+      @if (error(); as message) {
+        <p class="sub">{{ message.text | t: message.params }}</p>
+      }
+      <div class="actions">
+        <ion-button expand="block" (click)="run()">{{ 'Try again' | t }}</ion-button>
+        <ion-button expand="block" fill="outline" (click)="enterManually()">{{
+          'Enter details myself' | t
+        }}</ion-button>
+      </div>
+    } @else {
+      <h1>{{ 'Reading your receipt…' | t }}</h1>
+      @if (onPhone) {
+        <p class="sub">
+          {{ 'Just a few seconds. Everything is processed on your phone.' | t }}
+        </p>
+      } @else {
+        <p class="sub">
+          {{
+            'Reading in your browser. The first time, the reading engine (about 4 MB) is downloaded; after that it is kept by the browser.'
+              | t
+          }}
+        </p>
+      }
+      <ol class="steps" aria-live="polite">
+        @for (step of steps; track step.id; let index = $index) {
+          <li [class.done]="index < currentIndex()" [class.active]="index === currentIndex()">
+            @if (index < currentIndex()) {
+              <ion-icon name="checkmark-circle" color="primary" aria-hidden="true" />
+            } @else if (index === currentIndex()) {
+              <ion-spinner name="crescent" aria-hidden="true" />
+            } @else {
+              <span class="pending" aria-hidden="true"></span>
+            }
+            {{ step.label | t }}
+          </li>
+        }
+      </ol>
+    }
+    <p class="privacy">
+      <ion-icon name="lock-closed-outline" aria-hidden="true" />
+      {{ 'No data is sent to the internet' | t }}
+    </p>
+  </div>
+</ion-content>

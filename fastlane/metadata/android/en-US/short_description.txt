@@ -1,0 +1,1 @@
+Scan receipts offline: store, date and total read for you. No account.

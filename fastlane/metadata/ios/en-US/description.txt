@@ -1,0 +1,26 @@
+Scan a receipt in seconds, with no account and no internet. Your data stays on your phone.
+
+ScanReceipt reads your paper receipts for you: point the camera, and the store, the date, the total and the tax are filled in. Doubtful fields are highlighted, so you only check what needs checking.
+
+FAST
+• Scanner with edge detection and perspective correction
+• On-device text recognition: works in airplane mode
+• Categories suggested from the store name
+
+USEFUL FOR TAXES AND EXPENSE REPORTS
+• Totals per day, week, month and year, and per category
+• Export to CSV (Excel), PDF with photos, or a ZIP of the photos
+• Share a receipt as a photo or as text
+
+PRIVATE
+• No account, no server, no ads, no tracking
+• Nothing leaves your phone unless you share it
+• Open source (Apache 2.0)
+
+NO DATA LOSS
+• Full backup in a single file, with a monthly reminder
+• Restore everything on a new phone
+
+ANY CURRENCY, 7 LANGUAGES
+• Reads the currency on the receipt and converts it at the rate of the purchase day
+• English, French, Arabic, Chinese, Spanish, German and Portuguese

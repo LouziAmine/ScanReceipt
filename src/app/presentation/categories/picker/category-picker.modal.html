@@ -1,0 +1,55 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="close()">{{ 'Cancel' | t }}</ion-button>
+    </ion-buttons>
+    <ion-title>{{ 'Choose category' | t }}</ion-title>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-searchbar
+      [placeholder]="'Search or type a new category' | t"
+      [value]="query()"
+      (ionInput)="query.set($event.detail.value ?? '')"
+    />
+  </ion-toolbar>
+</ion-header>
+<ion-content>
+  <ion-list lines="full">
+    @for (category of visible(); track category.id) {
+      <ion-item [button]="true" [detail]="false" (click)="select(category.id)">
+        <span
+          slot="start"
+          class="icon"
+          [style.background]="colors[category.color].tint"
+          [style.color]="colors[category.color].hex"
+        >
+          <ion-icon [name]="icons[category.icon]" aria-hidden="true" />
+        </span>
+        <ion-label>
+          {{ category.name | t }}
+          @if (category.isCustom) {
+            <p>{{ 'Custom' | t }}</p>
+          }
+        </ion-label>
+        @if (category.id === selectedId()) {
+          <ion-icon
+            slot="end"
+            name="checkmark-outline"
+            color="primary"
+            [attr.aria-label]="'Selected' | t"
+          />
+        }
+      </ion-item>
+    }
+  </ion-list>
+  <div class="ion-padding">
+    <ion-button expand="block" fill="outline" (click)="create()">
+      <ion-icon slot="start" name="add-outline" />
+      @if (canCreateFromQuery()) {
+        {{ 'Create "{name}"' | t: { name: query().trim() } }}
+      } @else {
+        {{ 'Create new category' | t }}
+      }
+    </ion-button>
+  </div>
+</ion-content>

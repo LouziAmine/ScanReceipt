@@ -1,0 +1,1 @@
+Escaneie um recibo em segundos. Loja, data e total são lidos no seu celular: sem conta, sem internet, nada é enviado.

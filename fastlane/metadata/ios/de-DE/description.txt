@@ -1,0 +1,26 @@
+Scanne einen Beleg in Sekunden, ohne Konto und ohne Internet. Deine Daten bleiben auf deinem Handy.
+
+ScanReceipt liest deine Kassenbons für dich: Kamera draufhalten, und Geschäft, Datum, Summe und MwSt. werden ausgefüllt. Unsichere Felder werden hervorgehoben, damit du nur prüfst, was nötig ist.
+
+SCHNELL
+• Scanner mit Kantenerkennung und Perspektivkorrektur
+• Texterkennung auf dem Handy: funktioniert im Flugmodus
+• Kategorie wird anhand des Geschäftsnamens vorgeschlagen
+
+PRAKTISCH FÜR STEUER UND SPESEN
+• Summen pro Tag, Woche, Monat und Jahr sowie pro Kategorie
+• Export als CSV (Excel), PDF mit Fotos oder ZIP der Fotos
+• Beleg als Foto oder Text teilen
+
+PRIVAT
+• Kein Konto, kein Server, keine Werbung, kein Tracking
+• Nichts verlässt dein Handy, außer du teilst es
+• Open Source (Apache 2.0)
+
+KEIN DATENVERLUST
+• Vollständige Sicherung in einer Datei, mit monatlicher Erinnerung
+• Alles auf einem neuen Handy wiederherstellen
+
+JEDE WÄHRUNG, 7 SPRACHEN
+• Liest die Währung auf dem Beleg und rechnet zum Kurs des Kauftags um
+• Englisch, Französisch, Arabisch, Chinesisch, Spanisch, Deutsch und Portugiesisch

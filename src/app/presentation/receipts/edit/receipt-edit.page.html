@@ -1,0 +1,58 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="cancel()">{{ 'Cancel' | t }}</ion-button>
+    </ion-buttons>
+    <ion-title>{{ (review() ? 'Review receipt' : 'Edit receipt') | t }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button [strong]="true" [disabled]="busy()" (click)="save()">{{ 'Save' | t }}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  @if (current(); as r) {
+    @if (review()) {
+      <span class="chip" [class.ok]="remaining() === 0" role="status">
+        {{
+          remaining() === 0
+            ? ('Ready to save' | t)
+            : (remaining() | plural: '{count} field to check' : '{count} fields to check')
+        }}
+      </span>
+    }
+
+    <div class="photo-row">
+      <app-receipt-image
+        class="photo"
+        [path]="r.imagePath"
+        [alt]="'Receipt from {store}' | t: { store: r.store }"
+      />
+      <div class="photo-actions">
+        <span class="label">{{ 'Receipt photo' | t }}</span>
+        <ion-button size="small" fill="outline" [disabled]="busy()" (click)="replacePhoto(r)">
+          <ion-icon slot="start" name="camera-outline" />
+          {{ 'Replace photo' | t }}
+        </ion-button>
+        <ion-button size="small" fill="outline" [disabled]="busy()" (click)="rerunOcr(r)">
+          <ion-icon slot="start" name="refresh-outline" />
+          {{ 'Re-run OCR' | t }}
+        </ion-button>
+      </div>
+    </div>
+
+    @if (initial(); as values) {
+      <app-receipt-form [initial]="values" />
+    }
+
+    <p class="footnote">
+      @if (review()) {
+        {{ 'Leaving without saving keeps the "Needs review" status.' | t }}
+      } @else {
+        {{ 'Edit fixes any field the OCR got wrong. Changes are saved on this phone only.' | t }}
+      }
+    </p>
+  } @else {
+    <div class="loading"><ion-spinner name="crescent" /></div>
+  }
+</ion-content>

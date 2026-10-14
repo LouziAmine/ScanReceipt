@@ -1,0 +1,1 @@
+Beleg,Kassenbon,Quittung,Scanner,Ausgaben,Spesen,Rechnung,Budget,Steuer,OCR,CSV,PDF

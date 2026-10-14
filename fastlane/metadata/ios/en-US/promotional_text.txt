@@ -1,0 +1,1 @@
+Scan a receipt in seconds. The store, date and total are read on your phone: no account, no internet, nothing uploaded.

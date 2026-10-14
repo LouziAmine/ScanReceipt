@@ -1,0 +1,38 @@
+@let day = selected();
+@if (day) {
+  <p class="readout" aria-live="polite">
+    <span class="value amount">{{ day.cents | money: currency() }}</span>
+    <span class="label"
+      >{{ dayName(day.date) }} ·
+      {{ day.count | plural: '{count} receipt' : '{count} receipts' }}</span
+    >
+  </p>
+}
+<div class="plot" role="group" [attr.aria-label]="'Money spent per day' | t">
+  <span class="max-label">{{ maxCents() | money: currency() }}</span>
+  @for (d of days(); track d.date.getTime(); let i = $index) {
+    <button
+      type="button"
+      class="column"
+      [class.selected]="i === selectedIndex()"
+      [attr.aria-pressed]="i === selectedIndex()"
+      [attr.aria-label]="dayName(d.date) + ': ' + (d.cents | money: currency())"
+      (click)="picked.set(i)"
+      (pointerenter)="picked.set(i)"
+      (focus)="picked.set(i)"
+    >
+      @if (d.cents > 0) {
+        <span class="bar" [style.height.%]="(d.cents / maxCents()) * 100"></span>
+      }
+    </button>
+  }
+</div>
+<div class="axis" aria-hidden="true">
+  <!-- Some days only, counted back from today, so labels never touch on a phone. -->
+  @for (d of days(); track d.date.getTime(); let i = $index; let count = $count) {
+    @let back = count - 1 - i;
+    <span [class.today]="back === 0">{{
+      back === 0 ? ('Today' | t) : back % labelStep() === 0 && back > 2 ? d.date.getDate() : ''
+    }}</span>
+  }
+</div>

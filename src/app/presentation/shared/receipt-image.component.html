@@ -1,0 +1,5 @@
+@if (url.value(); as src) {
+  <img [src]="src" [alt]="alt() | t" [style.object-fit]="fit()" loading="lazy" decoding="async" />
+} @else if (url.isLoading()) {
+  <ion-skeleton-text [animated]="true" />
+}

@@ -1,0 +1,124 @@
+# Testers on real devices: after a green CI on master (or by hand), builds the Android app and publishes it on the
+# GitHub pre-release "testers" with two QR codes, also shown in the run summary:
+#   Android  scan → download ScanReceipt.apk → install (allow "unknown apps" once).
+#   iPhone   scan → the web demo in Safari (Share > Add to Home Screen). Apple allows installing a native app on a
+#            real iPhone only through TestFlight, which needs the Apple Developer account; the QR code will then
+#            point to the TestFlight link.
+# Both links never change, so a printed QR code keeps working: https://github.com/LouziAmine/ScanReceipt/releases/tag/testers
+#
+# Signing: with the ANDROID_KEYSTORE_* secrets (workflow 3), the APK is signed like the store app. Without them, a
+# testers key kept in the Actions cache signs it; if the cache expires (7 days unused), testers uninstall once.
+name: "7 · Testers · Real devices (QR codes)"
+
+on:
+  workflow_run:
+    workflows: ['1 · CI · Quality & Build']
+    types: [completed]
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: testers
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: 24
+  NPM_VERSION: 12.0.1
+  NG_CLI_ANALYTICS: false
+  CAPACITOR_TELEMETRY: false
+  APK_URL: https://github.com/${{ github.repository }}/releases/download/testers/ScanReceipt.apk
+  IPHONE_URL: https://louziamine.github.io/ScanReceipt/
+
+jobs:
+  testers:
+    name: Android APK + QR codes
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+      SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+    steps:
+      # The exact commit the CI validated.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SHA }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - run: npm install -g npm@${{ env.NPM_VERSION }}
+      - run: npm ci
+
+      - name: Store keystore
+        if: env.HAS_KEYSTORE == 'true'
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/release.keystore"
+          {
+            echo "ANDROID_KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}"
+            echo "ANDROID_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}"
+            echo "ANDROID_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}"
+          } >> "$GITHUB_ENV"
+      - name: Restore testers keystore
+        if: env.HAS_KEYSTORE != 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.testers-keystore
+          key: testers-keystore-v1
+      - name: Testers keystore
+        if: env.HAS_KEYSTORE != 'true'
+        run: |
+          mkdir -p ~/.testers-keystore
+          [ -f ~/.testers-keystore/testers.keystore ] || keytool -genkeypair -keystore ~/.testers-keystore/testers.keystore \
+            -alias testers -keyalg RSA -keysize 2048 -validity 10000 -storepass testers -keypass testers \
+            -dname "CN=ScanReceipt testers" -noprompt
+          cp ~/.testers-keystore/testers.keystore "$RUNNER_TEMP/release.keystore"
+          {
+            echo "ANDROID_KEYSTORE_PASSWORD=testers"
+            echo "ANDROID_KEY_ALIAS=testers"
+            echo "ANDROID_KEY_PASSWORD=testers"
+          } >> "$GITHUB_ENV"
+
+      - run: scripts/android-build.sh release
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/release.keystore
+
+      - name: QR codes and notes
+        run: |
+          sudo apt-get install -y -qq qrencode >/dev/null
+          mkdir -p dist/testers
+          cp dist/android/scanreceipt-release.apk dist/testers/ScanReceipt.apk
+          qrencode -t PNG -s 8 -m 2 -o dist/testers/qr-android.png "$APK_URL"
+          qrencode -t PNG -s 8 -m 2 -o dist/testers/qr-iphone.png "$IPHONE_URL"
+          base="https://github.com/$GITHUB_REPOSITORY/releases/download/testers"
+          version="$(node -p "require('./package.json').version")"
+          size="$(du -m dist/testers/ScanReceipt.apk | cut -f1)"
+          signing="signed with the store key"
+          [ "$HAS_KEYSTORE" = true ] || signing="signed with the testers key"
+          cat > dist/testers/notes.md <<EOF
+          Build **$version** · commit \`${SHA:0:7}\` · $(date -u '+%Y-%m-%d %H:%M UTC')
+
+          | Android | iPhone |
+          | :---: | :---: |
+          | [![Android: download the app](https://img.shields.io/badge/Android-Download_the_app-3DDC84?style=for-the-badge&logo=android&logoColor=white)]($APK_URL) | [![iPhone: open the web app](https://img.shields.io/badge/iPhone-Open_the_web_app-000000?style=for-the-badge&logo=apple&logoColor=white)]($IPHONE_URL) |
+          | [![QR code: Android APK]($base/qr-android.png)]($APK_URL) | [![QR code: iPhone web app]($base/qr-iphone.png)]($IPHONE_URL) |
+          | Scan with the camera, download **ScanReceipt.apk** ($size MB, $signing), open it and allow installing apps from this source once. | Scan with the camera: the app opens in Safari. **Share → Add to Home Screen** installs it, and it works offline. The native iPhone app will come through TestFlight. |
+          EOF
+
+      - name: Publish the "testers" pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete testers --cleanup-tag --yes 2>/dev/null || true
+          gh release create testers --prerelease --target "$SHA" \
+            --title "Testers · install on real devices" --notes-file dist/testers/notes.md \
+            dist/testers/ScanReceipt.apk dist/testers/qr-android.png dist/testers/qr-iphone.png
+          cat dist/testers/notes.md >> "$GITHUB_STEP_SUMMARY"

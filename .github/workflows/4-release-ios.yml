@@ -1,0 +1,120 @@
+# iOS: signed archive published on App Store Connect with fastlane: the build (TestFlight), the store
+# texts (7 languages), screenshots and release notes, then submitted for review if asked.
+# Set the version (`npm run version:set -- 1.1.0`), commit, push a tag v1.1.0, then
+# Actions > 4 · Release · iOS > Run workflow, choosing the tag in "Use workflow from".
+# Pushing the tag alone starts nothing, unless the variable RELEASE_ON_TAG is "true".
+#
+# Signing is automatic through an App Store Connect API key (role Admin, so Xcode can create the
+# distribution certificate and profile itself): no .p12 or provisioning profile to manage.
+#   Secrets:   ASC_KEY_ID, ASC_ISSUER_ID, ASC_PRIVATE_KEY (content of the .p8 file)
+#   Variable:  IOS_TEAM_ID (10 characters, developer.apple.com > Membership)
+# Other repository variables:
+#   RELEASE_ON_TAG          "true": pushing a v*.*.* tag starts this workflow (one push publishes)
+#   IOS_SUBMIT_FOR_REVIEW   "true": send the version to Apple review once uploaded
+#   IOS_AUTOMATIC_RELEASE   "true": publish on the App Store as soon as Apple approves
+name: "4 · Release · iOS (App Store)"
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+    inputs:
+      submit_for_review:
+        description: Send to Apple review once uploaded (else variable IOS_SUBMIT_FOR_REVIEW)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: 24
+  NPM_VERSION: 12.0.1
+  NG_CLI_ANALYTICS: false
+  CAPACITOR_TELEMETRY: false
+
+jobs:
+  testflight:
+    name: iOS · archive + App Store
+    if: github.event_name == 'workflow_dispatch' || vars.RELEASE_ON_TAG == 'true'
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm install -g npm@${{ env.NPM_VERSION }}
+      - run: npm ci
+      - name: Tag matches package.json version
+        run: |
+          if [ "$GITHUB_REF_TYPE" != tag ]; then
+            echo "::error::Run this workflow from a version tag: in \"Use workflow from\", pick Tags > v… (not a branch)."
+            exit 1
+          fi
+          expected="v$(node -p "require('./package.json').version")"
+          if [ "$GITHUB_REF_NAME" != "$expected" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match package.json ($expected). Run npm run version:set first."
+            exit 1
+          fi
+      - run: npm run verify
+      - run: npx cap sync ios
+      - name: pod install
+        working-directory: ios/App
+        run: pod install
+      - name: App Store Connect API key
+        run: |
+          printf '%s' "${{ secrets.ASC_PRIVATE_KEY }}" > "$RUNNER_TEMP/AuthKey.p8"
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>export</string>
+            <key>teamID</key><string>${{ vars.IOS_TEAM_ID }}</string>
+            <key>signingStyle</key><string>automatic</string>
+          </dict>
+          </plist>
+          PLIST
+      - name: Archive
+        run: >
+          xcodebuild archive -workspace ios/App/App.xcworkspace -scheme App -configuration Release
+          -destination 'generic/platform=iOS' -archivePath "$RUNNER_TEMP/App.xcarchive"
+          DEVELOPMENT_TEAM=${{ vars.IOS_TEAM_ID }} CODE_SIGN_STYLE=Automatic
+          -allowProvisioningUpdates
+          -authenticationKeyPath "$RUNNER_TEMP/AuthKey.p8"
+          -authenticationKeyID ${{ secrets.ASC_KEY_ID }}
+          -authenticationKeyIssuerID ${{ secrets.ASC_ISSUER_ID }}
+      # destination=upload: the export sends the build straight to App Store Connect / TestFlight.
+      - name: Export the IPA
+        run: >
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/App.xcarchive"
+          -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" -exportPath "$RUNNER_TEMP/export"
+          -allowProvisioningUpdates
+          -authenticationKeyPath "$RUNNER_TEMP/AuthKey.p8"
+          -authenticationKeyID ${{ secrets.ASC_KEY_ID }}
+          -authenticationKeyIssuerID ${{ secrets.ASC_ISSUER_ID }}
+      # Store listing: screenshots in 7 languages from the web build, release notes from CHANGELOG.md.
+      - name: Store screenshots and release notes
+        run: |
+          npx playwright-core install chromium-headless-shell
+          npx ng build --configuration development
+          npm run store:screenshots
+          npm run store:notes
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+      - name: Publish to App Store Connect (fastlane)
+        run: bundle exec fastlane ios release ipa:"$(ls "$RUNNER_TEMP"/export/*.ipa | head -1)"
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
+          IOS_SUBMIT_FOR_REVIEW: ${{ inputs.submit_for_review && 'true' || vars.IOS_SUBMIT_FOR_REVIEW }}
+          IOS_AUTOMATIC_RELEASE: ${{ vars.IOS_AUTOMATIC_RELEASE }}
+      - name: Remove API key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/AuthKey.p8"

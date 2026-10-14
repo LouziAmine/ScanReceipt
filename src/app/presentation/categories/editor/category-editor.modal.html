@@ -1,0 +1,67 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="close()">{{ 'Cancel' | t }}</ion-button>
+    </ion-buttons>
+    <ion-title>{{ (category() ? 'Edit category' : 'New category') | t }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+  <div class="preview" aria-hidden="true">
+    <span class="badge" [style.background]="colors[color()].tint">
+      <ion-icon [name]="icons[icon()]" [style.color]="colors[color()].hex" />
+      {{ name().trim() || ('Category' | t) }}
+    </span>
+  </div>
+
+  <ion-input
+    [label]="'Name' | t"
+    labelPlacement="stacked"
+    fill="outline"
+    autocapitalize="sentences"
+    [maxlength]="30"
+    [counter]="true"
+    [ngModel]="name()"
+    (ngModelChange)="name.set($event ?? '')"
+  />
+
+  <h2 class="group-title">{{ 'Color' | t }}</h2>
+  <div class="swatches" role="radiogroup" [attr.aria-label]="'Color' | t">
+    @for (option of colorNames; track option) {
+      <button
+        type="button"
+        role="radio"
+        class="swatch"
+        [class.on]="option === color()"
+        [attr.aria-checked]="option === color()"
+        [attr.aria-label]="option"
+        [style.background]="colors[option].hex"
+        (click)="color.set(option)"
+      ></button>
+    }
+  </div>
+
+  <h2 class="group-title">{{ 'Icon' | t }}</h2>
+  <div class="icons" role="radiogroup" [attr.aria-label]="'Icon' | t">
+    @for (option of iconNames; track option) {
+      <button
+        type="button"
+        role="radio"
+        class="icon-option"
+        [class.on]="option === icon()"
+        [attr.aria-checked]="option === icon()"
+        [attr.aria-label]="option"
+        (click)="icon.set(option)"
+      >
+        <ion-icon [name]="icons[option]" aria-hidden="true" />
+      </button>
+    }
+  </div>
+</ion-content>
+<ion-footer class="ion-no-border">
+  <ion-toolbar class="ion-padding-horizontal">
+    <ion-button expand="block" [disabled]="!canSave()" (click)="save()">
+      {{ (category() ? 'Save changes' : 'Create category') | t }}
+    </ion-button>
+  </ion-toolbar>
+</ion-footer>

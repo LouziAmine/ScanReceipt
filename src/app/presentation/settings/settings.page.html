@@ -1,0 +1,139 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/receipts" text="" />
+    </ion-buttons>
+    <ion-title>{{ 'Settings' | t }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content>
+  @let s = store.settings();
+  @let cancel = 'Cancel' | t;
+  <ion-list [inset]="true">
+    <ion-list-header>{{ 'General' | t }}</ion-list-header>
+    <ion-item>
+      <ion-select
+        [label]="'Language' | t"
+        interface="action-sheet"
+        [cancelText]="cancel"
+        [value]="s.language"
+        (ionChange)="set('language', $event.detail.value)"
+      >
+        @for (language of languages; track language) {
+          <ion-select-option [value]="language">{{ languageNames[language] }}</ion-select-option>
+        }
+      </ion-select>
+    </ion-item>
+    <ion-item>
+      <ion-select
+        [label]="'Appearance' | t"
+        interface="action-sheet"
+        [cancelText]="cancel"
+        [value]="s.theme"
+        (ionChange)="set('theme', $event.detail.value)"
+      >
+        <ion-select-option value="system">{{ 'Same as device' | t }}</ion-select-option>
+        <ion-select-option value="light">{{ 'Light' | t }}</ion-select-option>
+        <ion-select-option value="dark">{{ 'Dark' | t }}</ion-select-option>
+      </ion-select>
+    </ion-item>
+    <ion-item [button]="true" (click)="chooseCurrency(s.currency)">
+      <ion-label class="ion-text-wrap">
+        {{ 'Currency' | t }}
+        <p>
+          {{
+            'Receipts paid in another currency are converted to it when you save them, at the rate of their purchase day. Only the date is sent, never the receipt.'
+              | t
+          }}
+        </p>
+      </ion-label>
+      <ion-note slot="end">{{ s.currency }} · {{ currencyName(s.currency) }}</ion-note>
+    </ion-item>
+    <ion-item>
+      <ion-select
+        [label]="'Date format' | t"
+        interface="action-sheet"
+        [cancelText]="cancel"
+        [value]="s.dateFormat"
+        (ionChange)="set('dateFormat', $event.detail.value)"
+      >
+        @for (format of dateFormats; track format) {
+          <ion-select-option [value]="format">{{ format }}</ion-select-option>
+        }
+      </ion-select>
+    </ion-item>
+    <ion-item>
+      <ion-select
+        [label]="'Week starts on' | t"
+        interface="action-sheet"
+        [cancelText]="cancel"
+        [value]="s.weekStartsOn"
+        (ionChange)="set('weekStartsOn', $event.detail.value)"
+      >
+        <ion-select-option [value]="0">{{ 'Sunday' | t }}</ion-select-option>
+        <ion-select-option [value]="1">{{ 'Monday' | t }}</ion-select-option>
+      </ion-select>
+    </ion-item>
+    <ion-item>
+      <ion-select
+        [label]="'Default category' | t"
+        interface="action-sheet"
+        [cancelText]="cancel"
+        [value]="s.defaultCategoryId"
+        (ionChange)="set('defaultCategoryId', $event.detail.value)"
+      >
+        @for (category of categories.categories(); track category.id) {
+          <ion-select-option [value]="category.id">{{ category.name | t }}</ion-select-option>
+        }
+      </ion-select>
+    </ion-item>
+  </ion-list>
+
+  <ion-list [inset]="true">
+    <ion-list-header>{{ 'Scanning' | t }}</ion-list-header>
+    <ion-item>
+      <ion-select
+        [label]="'Image quality' | t"
+        interface="action-sheet"
+        [cancelText]="cancel"
+        [value]="s.imageQuality"
+        (ionChange)="set('imageQuality', $event.detail.value)"
+      >
+        <ion-select-option value="high">{{ 'High' | t }}</ion-select-option>
+        <ion-select-option value="standard">{{ 'Standard (smaller files)' | t }}</ion-select-option>
+      </ion-select>
+    </ion-item>
+    <ion-item>
+      <ion-toggle
+        [checked]="s.warnOnLowConfidence"
+        (ionChange)="set('warnOnLowConfidence', $event.detail.checked)"
+      >
+        <ion-label>
+          {{ 'Warn on low confidence' | t }}
+          <p>{{ 'Highlights amounts to double-check' | t }}</p>
+        </ion-label>
+      </ion-toggle>
+    </ion-item>
+  </ion-list>
+
+  <ion-list [inset]="true">
+    <ion-list-header>{{ 'Data' | t }}</ion-list-header>
+    <ion-item [button]="true" routerLink="/backup">
+      <ion-label>{{ 'Backup & restore' | t }}</ion-label>
+    </ion-item>
+    <ion-item [button]="true" routerLink="/categories">
+      <ion-label>{{ 'Manage categories' | t }}</ion-label>
+    </ion-item>
+  </ion-list>
+
+  <ion-list [inset]="true">
+    <ion-list-header>{{ 'About' | t }}</ion-list-header>
+    <ion-item>
+      <ion-label>{{ 'Version' | t }}</ion-label>
+      <ion-note slot="end">{{ version }}</ion-note>
+    </ion-item>
+    <ion-item [href]="privacyPolicyUrl" target="_blank" rel="noopener" [detail]="true">
+      <ion-label>{{ 'Privacy policy' | t }}</ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>

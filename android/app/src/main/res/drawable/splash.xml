@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Launch screen: the vector logo tile centered on the brand navy, sharp at every density. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/ic_launcher_background" />
+    <item
+        android:width="200dp"
+        android:height="200dp"
+        android:drawable="@drawable/splash_logo"
+        android:gravity="center" />
+</layer-list>

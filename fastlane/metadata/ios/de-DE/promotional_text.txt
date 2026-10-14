@@ -1,0 +1,1 @@
+Scanne einen Beleg in Sekunden. Geschäft, Datum und Summe werden auf deinem Handy gelesen: ohne Konto, ohne Internet, nichts wird hochgeladen.

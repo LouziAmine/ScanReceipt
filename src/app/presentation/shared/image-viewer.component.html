@@ -1,0 +1,20 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ 'Receipt' | t }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="close()" [attr.aria-label]="'Close' | t">
+        <ion-icon slot="icon-only" name="close-outline" />
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+<ion-content [scrollX]="zoomed()">
+  <button
+    type="button"
+    class="frame"
+    (click)="zoomed.set(!zoomed())"
+    [attr.aria-label]="(zoomed() ? 'Zoom out' : 'Zoom in') | t"
+  >
+    <img [src]="url()" [alt]="'Receipt photo' | t" [class.zoomed]="zoomed()" />
+  </button>
+</ion-content>

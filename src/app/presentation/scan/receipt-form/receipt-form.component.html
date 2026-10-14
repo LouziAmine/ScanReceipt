@@ -1,0 +1,179 @@
+<form [formGroup]="form" (ngSubmit)="$event.preventDefault()" class="fields">
+  <div class="field" [class.doubtful]="isDoubtful('store')">
+    <ion-input
+      formControlName="store"
+      [label]="'Store' | t"
+      labelPlacement="stacked"
+      fill="outline"
+      autocapitalize="words"
+      [errorText]="'Enter the store name' | t"
+      [maxlength]="80"
+    />
+    @if (isDoubtful('store')) {
+      <div class="doubt">
+        <span>{{ hints().store ?? 'Please check the store name' | t }}</span>
+        <ion-button size="small" fill="clear" (click)="confirm('store')">{{
+          'This is correct' | t
+        }}</ion-button>
+      </div>
+    }
+    @if (currency() !== personCurrency()) {
+      <p class="conversion-note">
+        {{
+          'Saved in {currency}: you confirm the conversion when you save.'
+            | t: { currency: personCurrency() }
+        }}
+      </p>
+    }
+  </div>
+
+  <div class="field" [class.doubtful]="isDoubtful('date')">
+    <span class="label">{{ 'Date' | t }}</span>
+    <ion-datetime-button [datetime]="datetimeId" />
+    <ion-modal [keepContentsMounted]="true">
+      <ng-template>
+        <ion-datetime
+          [id]="datetimeId"
+          presentation="date-time"
+          [locale]="locale()"
+          [doneText]="'Done' | t"
+          [cancelText]="'Cancel' | t"
+          [max]="maxDate"
+          [value]="form.controls.purchasedAt.value"
+          [showDefaultButtons]="true"
+          (ionChange)="onDateChange($event.detail.value)"
+        />
+      </ng-template>
+    </ion-modal>
+    @if (isDoubtful('date')) {
+      <div class="doubt">
+        <span>{{ hints().date ?? 'Please check the date' | t }}</span>
+        <ion-button size="small" fill="clear" (click)="confirm('date')">{{
+          'This is correct' | t
+        }}</ion-button>
+      </div>
+    }
+    @if (currency() !== personCurrency()) {
+      <p class="conversion-note">
+        {{
+          'Saved in {currency}: you confirm the conversion when you save.'
+            | t: { currency: personCurrency() }
+        }}
+      </p>
+    }
+  </div>
+
+  <div class="field" [class.doubtful]="currencyHint()">
+    <span class="label">{{ 'Currency' | t }}</span>
+    <button
+      type="button"
+      class="category currency-choice"
+      (click)="chooseCurrency()"
+      [attr.aria-label]="'Change currency' | t"
+    >
+      <span>
+        <strong>{{ currency() }}</strong> · {{ currencyName() }}
+      </span>
+      <ion-icon name="chevron-forward-outline" aria-hidden="true" [flipRtl]="true" />
+    </button>
+    @if (currencyHint(); as hint) {
+      <div class="doubt">
+        <span>{{ hint.text | t: hint.params }}</span>
+        <ion-button size="small" fill="clear" (click)="currencyHint.set(null)">{{
+          'This is correct' | t
+        }}</ion-button>
+      </div>
+    }
+    @if (currency() !== personCurrency()) {
+      <p class="conversion-note">
+        {{
+          'Saved in {currency}: you confirm the conversion when you save.'
+            | t: { currency: personCurrency() }
+        }}
+      </p>
+    }
+  </div>
+
+  <div class="amounts">
+    <div class="field" [class.doubtful]="isDoubtful('tax')">
+      <ion-input
+        formControlName="tax"
+        [label]="'Sales tax' | t"
+        labelPlacement="stacked"
+        fill="outline"
+        inputmode="decimal"
+        [placeholder]="'Optional' | t"
+        [errorText]="'Enter an amount like 1.18' | t"
+      >
+        <span slot="start" class="currency">{{ currencySymbol() }}</span>
+      </ion-input>
+      @if (isDoubtful('tax')) {
+        <div class="doubt">
+          <span>{{ hints().tax ?? 'Please check the tax' | t }}</span>
+          <ion-button size="small" fill="clear" (click)="confirm('tax')">{{
+            'Correct' | t
+          }}</ion-button>
+        </div>
+      }
+    </div>
+
+    <div class="field" [class.doubtful]="isDoubtful('total')">
+      <ion-input
+        formControlName="total"
+        [label]="'Total' | t"
+        labelPlacement="stacked"
+        fill="outline"
+        inputmode="decimal"
+        class="total-input"
+        [errorText]="'Enter the total, like 14.75' | t"
+      >
+        <span slot="start" class="currency">{{ currencySymbol() }}</span>
+      </ion-input>
+    </div>
+  </div>
+  @if (isDoubtful('total')) {
+    <div class="doubt total-doubt" role="status">
+      <ion-icon name="warning-outline" aria-hidden="true" />
+      <span>{{ hints().total ?? 'Low confidence, please check this amount' | t }}</span>
+      <ion-button size="small" (click)="confirm('total')">{{
+        'This amount is correct' | t
+      }}</ion-button>
+    </div>
+  }
+
+  <div class="field">
+    <span class="label">{{ 'Category' | t }}</span>
+    <button
+      type="button"
+      class="category"
+      (click)="chooseCategory()"
+      [attr.aria-label]="'Change category' | t"
+    >
+      @if (category(); as current) {
+        <app-category-badge [category]="current" />
+      }
+      <ion-icon name="chevron-forward-outline" aria-hidden="true" [flipRtl]="true" />
+    </button>
+    @if (offerStoreRule() && form.controls.store.value.trim()) {
+      <ion-toggle
+        class="rule"
+        [checked]="alwaysUseForStore()"
+        (ionChange)="alwaysUseForStore.set($event.detail.checked)"
+        justify="space-between"
+      >
+        {{ 'Always use for {store}' | t: { store: form.controls.store.value.trim() } }}
+      </ion-toggle>
+    }
+  </div>
+
+  <ion-textarea
+    formControlName="note"
+    [label]="'Note (optional)' | t"
+    labelPlacement="stacked"
+    fill="outline"
+    [placeholder]="'e.g. Team breakfast' | t"
+    [autoGrow]="true"
+    [counter]="true"
+    [maxlength]="500"
+  />
+</form>

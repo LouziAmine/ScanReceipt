@@ -1,0 +1,51 @@
+.preview {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0 24px;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 12px;
+  font-weight: 500;
+  color: #16181a;
+}
+.group-title {
+  margin: 24px 0 10px;
+  font-size: 15px;
+  font-weight: 700;
+}
+.swatches,
+.icons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.swatch {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  &.on {
+    border-color: var(--app-text);
+  }
+}
+.icon-option {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  border: 1px solid var(--app-border);
+  background: var(--app-surface);
+  color: var(--app-text);
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  &.on {
+    border: 2px solid var(--ion-color-primary);
+    background: var(--app-chip-on-bg);
+  }
+}

@@ -1,0 +1,94 @@
+# Publishes ScanReceipt to Google Play and the App Store: the app, the store texts in 7 languages,
+# the icon, the screenshots and the release notes. Run by workflows 3 and 4; see docs/08-ci-cd.md.
+#
+#   bundle exec fastlane android release aab:dist/android/scanreceipt-release.aab
+#   bundle exec fastlane ios release ipa:build/App.ipa
+#   bundle exec fastlane android metadata      # texts and images only, no new build
+#   bundle exec fastlane ios metadata
+#
+# Before: `npm run store:screenshots` (screenshots) and `npm run store:notes` (release notes).
+# Lanes run from fastlane/, so paths are relative to it.
+
+default_platform(:android)
+opt_out_usage
+
+ROOT = File.expand_path('..', __dir__)
+
+platform :android do
+  # Google Play track: internal (testers), alpha, beta or production. Variable PLAY_TRACK.
+  def play_options
+    rollout = ENV['PLAY_ROLLOUT'].to_s.strip
+    {
+      json_key_data: ENV.fetch('PLAY_SERVICE_ACCOUNT_JSON'),
+      track: ENV.fetch('PLAY_TRACK', 'internal'),
+      # "0.2" = the update reaches 20% of users first (production); empty = everyone.
+      rollout: rollout.empty? ? nil : rollout,
+      release_status: rollout.empty? ? 'completed' : 'inProgress',
+      metadata_path: File.join(ROOT, 'fastlane/metadata/android'),
+      skip_upload_screenshots: Dir.glob(File.join(ROOT, 'fastlane/metadata/android/*/images/phoneScreenshots/*.png')).empty?,
+      skip_upload_images: !File.exist?(File.join(ROOT, 'fastlane/metadata/android/en-US/images/icon.png')),
+    }
+  end
+
+  desc 'Upload the signed AAB with texts, images, screenshots and release notes'
+  lane :release do |options|
+    upload_to_play_store(
+      **play_options,
+      aab: File.expand_path(options.fetch(:aab), ROOT),
+    )
+  end
+
+  desc 'Update the store listing (texts, images, screenshots) without a new build'
+  lane :metadata do
+    upload_to_play_store(
+      **play_options,
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      skip_upload_changelogs: true,
+    )
+  end
+end
+
+platform :ios do
+  def asc_api_key
+    app_store_connect_api_key(
+      key_id: ENV.fetch('ASC_KEY_ID'),
+      issuer_id: ENV.fetch('ASC_ISSUER_ID'),
+      key_content: ENV.fetch('ASC_PRIVATE_KEY'),
+    )
+  end
+
+  def deliver_options
+    screenshots = File.join(ROOT, 'fastlane/screenshots/ios')
+    {
+      api_key: asc_api_key,
+      metadata_path: File.join(ROOT, 'fastlane/metadata/ios'),
+      screenshots_path: screenshots,
+      skip_screenshots: Dir.glob(File.join(screenshots, '*/*.png')).empty?,
+      overwrite_screenshots: true,
+      # No HTML preview to confirm: this runs in CI.
+      force: true,
+      run_precheck_before_submit: false,
+      submission_information: {
+        add_id_info_uses_idfa: false,
+        export_compliance_uses_encryption: false,
+      },
+    }
+  end
+
+  desc 'Upload the IPA with texts, screenshots and release notes; submit for review if asked'
+  lane :release do |options|
+    upload_to_app_store(
+      **deliver_options,
+      ipa: File.expand_path(options.fetch(:ipa), ROOT),
+      # Variables IOS_SUBMIT_FOR_REVIEW and IOS_AUTOMATIC_RELEASE ("true" / "false").
+      submit_for_review: ENV['IOS_SUBMIT_FOR_REVIEW'] == 'true',
+      automatic_release: ENV['IOS_AUTOMATIC_RELEASE'] == 'true',
+    )
+  end
+
+  desc 'Update the store listing (texts, screenshots) without a new build'
+  lane :metadata do
+    upload_to_app_store(**deliver_options, skip_binary_upload: true, skip_app_version_update: true)
+  end
+end

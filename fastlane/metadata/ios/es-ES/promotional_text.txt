@@ -1,0 +1,1 @@
+Escanea un ticket en segundos. La tienda, la fecha y el total se leen en tu móvil: sin cuenta, sin internet, sin subir nada.

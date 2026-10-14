@@ -1,0 +1,76 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/receipts" text="" />
+    </ion-buttons>
+    <ion-title>{{ 'Export receipts' | t }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+  <h2 class="group-title">{{ 'Which receipts' | t }}</h2>
+  <div class="chips" role="radiogroup" [attr.aria-label]="'Which receipts' | t">
+    @for (option of ranges; track option.value) {
+      <button
+        type="button"
+        role="radio"
+        class="chip"
+        [class.on]="range() === option.value"
+        [attr.aria-checked]="range() === option.value"
+        (click)="range.set(option.value)"
+      >
+        {{ option.label | t }}
+      </button>
+    }
+  </div>
+
+  <h2 class="group-title">{{ 'Format' | t }}</h2>
+  <ion-list lines="none">
+    <ion-radio-group [value]="format()" (ionChange)="format.set($event.detail.value)">
+      @for (option of formats; track option.value) {
+        <ion-item class="format" [class.on]="format() === option.value">
+          <span slot="start" class="tag">{{ option.tag }}</span>
+          <ion-radio [value]="option.value" justify="space-between">
+            <ion-label>
+              {{ option.title | t }}
+              <p>{{ option.description | t }}</p>
+            </ion-label>
+          </ion-radio>
+        </ion-item>
+      }
+    </ion-radio-group>
+  </ion-list>
+
+  @if (format() !== 'zip') {
+    <ion-list lines="none">
+      <ion-item>
+        <ion-toggle
+          [checked]="includePhotos()"
+          (ionChange)="includePhotos.set($event.detail.checked)"
+        >
+          <ion-label>
+            {{ 'Include receipt photos' | t }}
+            <p>{{ 'Bigger file, but ready for an audit' | t }}</p>
+          </ion-label>
+        </ion-toggle>
+      </ion-item>
+    </ion-list>
+  }
+</ion-content>
+<ion-footer class="ion-no-border">
+  <ion-toolbar class="ion-padding-horizontal">
+    @if (preview.value(); as totals) {
+      <p class="summary">
+        {{ totals.count | plural: '{count} receipt' : '{count} receipts' }} ·
+        {{ totals | amounts: currency() }}
+      </p>
+    }
+    <ion-button expand="block" [disabled]="(preview.value()?.count ?? 0) === 0" (click)="run()">
+      {{
+        preview.value()?.count ?? 0 | plural: 'Export {count} receipt' : 'Export {count} receipts'
+      }}
+    </ion-button>
+    <p class="note">
+      {{ "The file opens in your phone's share menu (email, Drive, Files…)" | t }}
+    </p>
+  </ion-toolbar>
+</ion-footer>

@@ -1,0 +1,61 @@
+.group-title {
+  margin: 20px 0 10px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+
+  &.wrap {
+    flex-wrap: wrap;
+  }
+}
+
+.chip {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: var(--app-radius-sm);
+  border: 1px solid var(--app-border-strong);
+  background: transparent;
+  color: var(--app-text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  &.on {
+    border-color: transparent;
+    background: var(--app-chip-on-bg);
+    color: var(--app-chip-on-fg);
+  }
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.custom-range {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.amounts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.sorts ion-item,
+ion-list ion-item {
+  --padding-start: 0;
+  --background: transparent;
+}

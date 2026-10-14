@@ -1,0 +1,74 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/receipts" text="" />
+    </ion-buttons>
+    <ion-title>{{ 'Review receipt' | t }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  @if (draft(); as scan) {
+    <div class="intro">
+      <div class="photo">
+        @if (preview.value(); as src) {
+          <img [src]="src" [alt]="'Scanned receipt' | t" />
+        }
+        <ion-button size="small" fill="solid" color="light" class="view" (click)="viewImage()">
+          <ion-icon slot="start" name="expand-outline" />
+          {{ 'View full image' | t }}
+        </ion-button>
+      </div>
+      <div class="intro-text">
+        @if (scan.ocrAvailable) {
+          <span class="status">{{ 'Text read automatically' | t }}</span>
+          <p>{{ "Fix anything that's off, then save." | t }}</p>
+        } @else {
+          <span class="status manual">{{ 'Enter the details' | t }}</span>
+          <p>{{ 'Automatic reading runs on a phone. Type the store and total, then save.' | t }}</p>
+        }
+      </div>
+    </div>
+
+    @if (initial(); as values) {
+      <app-receipt-form [initial]="values" [offerStoreRule]="true" />
+    }
+
+    @if (suggestedByOcr()) {
+      <p class="hint">{{ 'Category suggested from the store name.' | t }}</p>
+    }
+
+    @if (scan.ocrText) {
+      <button
+        type="button"
+        class="ocr-toggle"
+        (click)="showOcrText.set(!showOcrText())"
+        [attr.aria-expanded]="showOcrText()"
+      >
+        {{ 'Raw OCR text' | t }}
+        <ion-icon
+          [name]="showOcrText() ? 'chevron-down-outline' : 'chevron-forward-outline'"
+          [flipRtl]="true"
+          aria-hidden="true"
+        />
+      </button>
+      @if (showOcrText()) {
+        <pre class="ocr-text" dir="auto">{{ scan.ocrText }}</pre>
+      }
+    }
+  }
+</ion-content>
+
+<ion-footer class="ion-no-border">
+  <ion-toolbar class="footer">
+    <div class="buttons">
+      <ion-button fill="outline" (click)="retake()">
+        <ion-icon slot="start" name="camera-outline" />
+        {{ 'Retake' | t }}
+      </ion-button>
+      <ion-button class="save" [disabled]="saving()" (click)="save()">{{
+        'Save receipt' | t
+      }}</ion-button>
+    </div>
+  </ion-toolbar>
+</ion-footer>

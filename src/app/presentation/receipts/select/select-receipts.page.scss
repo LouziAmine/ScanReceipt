@@ -1,0 +1,16 @@
+.hint {
+  margin: 12px 20px;
+  font-size: 13px;
+  color: var(--app-text-muted);
+}
+ion-item {
+  --background: transparent;
+  --padding-start: 16px;
+}
+ion-item.selected {
+  --background: var(--app-selected-row);
+}
+.actions {
+  display: flex;
+  justify-content: space-around;
+}

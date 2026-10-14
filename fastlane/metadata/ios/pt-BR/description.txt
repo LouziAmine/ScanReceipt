@@ -1,0 +1,26 @@
+Escaneie um recibo em segundos, sem conta e sem internet. Seus dados ficam no seu celular.
+
+O ScanReceipt lê seus recibos de papel para você: aponte a câmera, e a loja, a data, o total e o imposto são preenchidos. Os campos duvidosos ficam destacados, então você só confere o que precisa.
+
+RÁPIDO
+• Scanner com detecção de bordas e correção de perspectiva
+• Reconhecimento de texto no celular: funciona no modo avião
+• Categoria sugerida pelo nome da loja
+
+ÚTIL PARA IMPOSTOS E REEMBOLSOS
+• Totais por dia, semana, mês e ano, e por categoria
+• Exporte em CSV (Excel), PDF com fotos ou ZIP das fotos
+• Compartilhe um recibo como foto ou texto
+
+PRIVADO
+• Sem conta, sem servidor, sem anúncios, sem rastreamento
+• Nada sai do seu celular, a menos que você compartilhe
+• Código aberto (Apache 2.0)
+
+SEM PERDA DE DADOS
+• Backup completo em um único arquivo, com lembrete mensal
+• Restaure tudo em um celular novo
+
+QUALQUER MOEDA, 7 IDIOMAS
+• Lê a moeda do recibo e converte pela cotação do dia da compra
+• Inglês, francês, árabe, chinês, espanhol, alemão e português

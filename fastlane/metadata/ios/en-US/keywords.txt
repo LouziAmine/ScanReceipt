@@ -1,0 +1,1 @@
+receipt,scanner,expense,tracker,OCR,budget,tax,invoice,bill,report,CSV,PDF,spending,offline

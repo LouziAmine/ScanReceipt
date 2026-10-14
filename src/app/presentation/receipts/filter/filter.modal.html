@@ -1,0 +1,132 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="close()">{{ 'Cancel' | t }}</ion-button>
+    </ion-buttons>
+    <ion-title>{{ 'Filter receipts' | t }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="reset()">{{ 'Reset' | t }}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <h2 class="group-title">{{ 'Date' | t }}</h2>
+  <div class="chips" role="radiogroup" [attr.aria-label]="'Date' | t">
+    @for (choice of dateChoices; track choice.value) {
+      <button
+        type="button"
+        role="radio"
+        class="chip"
+        [class.on]="dateChoice() === choice.value"
+        [attr.aria-checked]="dateChoice() === choice.value"
+        (click)="dateChoice.set(choice.value)"
+      >
+        {{ choice.label | t }}
+      </button>
+    }
+  </div>
+  @if (dateChoice() === 'custom') {
+    <div class="custom-range">
+      <ion-datetime
+        presentation="date"
+        size="cover"
+        [locale]="locale()"
+        [value]="customFrom()"
+        (ionChange)="customFrom.set(asString($event.detail.value))"
+        [attr.aria-label]="'From' | t"
+      >
+        <span slot="title">{{ 'From' | t }}</span>
+      </ion-datetime>
+      <ion-datetime
+        presentation="date"
+        size="cover"
+        [locale]="locale()"
+        [value]="customTo()"
+        (ionChange)="customTo.set(asString($event.detail.value))"
+        [attr.aria-label]="'To' | t"
+      >
+        <span slot="title">{{ 'To' | t }}</span>
+      </ion-datetime>
+    </div>
+  }
+
+  <h2 class="group-title">{{ 'Category' | t }}</h2>
+  <div class="chips wrap" role="group" [attr.aria-label]="'Category' | t">
+    @for (category of categories.categories(); track category.id) {
+      <button
+        type="button"
+        class="chip"
+        [class.on]="categoryIds().has(category.id)"
+        [attr.aria-pressed]="categoryIds().has(category.id)"
+        (click)="toggleCategory(category.id)"
+      >
+        <span class="dot" [style.background]="colors[category.color].hex"></span>
+        {{ category.name | t }}
+      </button>
+    }
+  </div>
+
+  <h2 class="group-title">{{ 'Amount in {currency}' | t: { currency: currency() } }}</h2>
+  <div class="amounts">
+    <ion-input
+      [label]="'Min' | t"
+      labelPlacement="stacked"
+      fill="outline"
+      inputmode="decimal"
+      placeholder="0"
+      [ngModel]="minAmount()"
+      (ngModelChange)="minAmount.set($event ?? '')"
+    />
+    <ion-input
+      [label]="'Max' | t"
+      labelPlacement="stacked"
+      fill="outline"
+      inputmode="decimal"
+      [placeholder]="'Any' | t"
+      [ngModel]="maxAmount()"
+      (ngModelChange)="maxAmount.set($event ?? '')"
+    />
+  </div>
+
+  <h2 class="group-title">{{ 'Sort by' | t }}</h2>
+  <ion-list lines="none" class="sorts">
+    <ion-radio-group [value]="sort()" (ionChange)="sort.set($event.detail.value)">
+      @for (option of sorts; track option.value) {
+        <ion-item>
+          <ion-radio [value]="option.value" justify="space-between">{{
+            option.label | t
+          }}</ion-radio>
+        </ion-item>
+      }
+    </ion-radio-group>
+  </ion-list>
+
+  <ion-list lines="none">
+    <ion-item>
+      <ion-toggle
+        [checked]="onlyNeedsReview()"
+        (ionChange)="onlyNeedsReview.set($event.detail.checked)"
+      >
+        <ion-label>
+          {{ 'Only "Needs review"' | t }}
+          <p>{{ "Receipts the OCR wasn't sure about" | t }}</p>
+        </ion-label>
+      </ion-toggle>
+    </ion-item>
+  </ion-list>
+</ion-content>
+
+<ion-footer class="ion-no-border">
+  <ion-toolbar class="ion-padding-horizontal">
+    <ion-button expand="block" (click)="apply()">
+      @if (matchCount(); as count) {
+        {{ count | plural: 'Show {count} receipt' : 'Show {count} receipts' }}
+      } @else if (matchCount() === 0) {
+        {{ 0 | plural: 'Show {count} receipt' : 'Show {count} receipts' }}
+      } @else {
+        {{ 'Show receipts' | t }}
+      }
+    </ion-button>
+  </ion-toolbar>
+</ion-footer>

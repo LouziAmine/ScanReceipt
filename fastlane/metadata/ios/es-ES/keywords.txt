@@ -1,0 +1,1 @@
+ticket,recibo,escáner,gastos,factura,presupuesto,impuestos,OCR,CSV,PDF,contabilidad,dietas

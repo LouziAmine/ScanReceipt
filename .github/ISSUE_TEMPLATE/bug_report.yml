@@ -1,0 +1,87 @@
+name: Bug report
+description: Something does not work as expected (including receipts the OCR misreads).
+labels: [bug, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! For a **security** problem, do not use this form: see SECURITY.md.
+        Please hide any personal data (card numbers, names, addresses) in photos and text.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Feature
+      options:
+        - F1 Scan
+        - F2 OCR reading
+        - F3 Review and save
+        - F4 List, search, filters
+        - F5 Details and editing
+        - F6 Categories and store rules
+        - F7 Totals
+        - F8 Multi-select
+        - F9 Export and share
+        - F10 Backup and restore
+        - F11 Settings
+        - Build, CI or documentation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open …
+        2. Tap …
+        3. See …
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device and OS
+      placeholder: Pixel 7, Android 15 / iPhone 13, iOS 18 / Chrome 140
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: Settings → Version, or the CI build number.
+      placeholder: 1.0.0
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - Blocker (data loss, crash, cannot scan or save)
+        - Major (feature unusable, workaround exists)
+        - Minor (annoyance, wrong display)
+        - Cosmetic (wording, alignment, color)
+    validations:
+      required: true
+  - type: textarea
+    id: ocr
+    attributes:
+      label: Raw OCR text (OCR bugs only)
+      description: Receipt details → OCR text. It lets us turn your receipt into a test case.
+      render: text
+  - type: textarea
+    id: attachments
+    attributes:
+      label: Screenshots, video or logs

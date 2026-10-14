@@ -1,0 +1,57 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/receipts" text="" />
+    </ion-buttons>
+    <ion-title>{{ 'Categories' | t }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="edit(null)" [attr.aria-label]="'New category' | t">
+        <ion-icon slot="icon-only" name="add-outline" />
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+<ion-content>
+  <p class="hint">
+    {{ 'Tap to edit. Drag the handle to reorder. Swipe left to delete.' | t }}
+  </p>
+  <ion-list lines="full">
+    <ion-reorder-group [disabled]="false" (ionReorderEnd)="reorder($event)">
+      @for (category of store.categories(); track category.id) {
+        <ion-item-sliding [disabled]="category.isFallback">
+          <ion-item [button]="true" [detail]="false" (click)="edit(category)">
+            <span
+              slot="start"
+              class="icon"
+              [style.background]="colors[category.color].tint"
+              [style.color]="colors[category.color].hex"
+            >
+              <ion-icon [name]="icons[category.icon]" aria-hidden="true" />
+            </span>
+            <ion-label>
+              {{ category.name | t }}
+              <p>
+                {{
+                  store.receiptCounts().get(category.id) ?? 0
+                    | plural: '{count} receipt' : '{count} receipts'
+                }}
+                @if (category.isCustom) {
+                  · {{ 'Custom' | t }}
+                }
+              </p>
+            </ion-label>
+            <ion-reorder slot="end" />
+          </ion-item>
+          <ion-item-options side="end">
+            <ion-item-option color="danger" (click)="remove(category)">{{
+              'Delete' | t
+            }}</ion-item-option>
+          </ion-item-options>
+        </ion-item-sliding>
+      }
+    </ion-reorder-group>
+  </ion-list>
+  <p class="hint">
+    {{ 'Deleting a category moves its receipts to "Other". No receipt is ever lost.' | t }}
+  </p>
+</ion-content>
